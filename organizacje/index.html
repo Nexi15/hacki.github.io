@@ -24,7 +24,6 @@
         </header>
 
         <div class="content-body">
-            <!-- PASEK BOCZNY -->
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <span>FRAKCJE</span>
@@ -33,17 +32,16 @@
                 <div id="tabsList" class="tabs-list"></div>
             </aside>
 
-            <!-- GŁÓWNY OBSZAR -->
             <main id="mainDisplay" class="main-display"></main>
         </div>
     </div>
 
-    <!-- MODAL LOGOWANIA ADMINA -->
+    <!-- MODAL LOGOWANIA -->
     <div id="adminModal" class="modal-overlay hidden">
         <div class="modal-card">
             <h3>LOGOWANIE ADMINA</h3>
-            <p>Wprowadź hasło zarządcy, aby edytować dane.</p>
-            <input type="password" id="adminPasswordInput" placeholder="Hasło...">
+            <p>Wprowadź hasło, aby edytować zawartość.</p>
+            <input type="password" id="adminPasswordInput" placeholder="Hasło (1312)...">
             <div class="modal-actions">
                 <button class="btn-sec" onclick="toggleAdminModal()">ANULUJ</button>
                 <button class="btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
