@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ammunation - Omijaj Przeszkody</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #0b0d0e;
+      background-image: radial-gradient(#1f2428 1px, transparent 1px);
+      background-size: 16px 16px;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ff007f;
+      text-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
+    }
+
+    .status-bar {
+      display: flex;
+      gap: 30px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .level-info {
+      color: #ff007f;
+    }
+
+    .timer-info {
+      color: #fff;
+    }
+
+    #gameCanvas {
+      background: #121517;
+      border: 2px solid #ff007f;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.3);
+      display: block;
+    }
+
+    .controls {
+      margin-top: 15px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #ff007f;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #ff007f;
+      color: #0b0d0e;
+      box-shadow: 0 0 15px #ff007f;
+    }
+
+    .instructions {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    .back-btn {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .back-btn:hover {
+      background: #fff;
+      color: #000;
+      box-shadow: 0 0 10px #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>AMMUNATION</h1>
+  </div>
+
+  <div class="status-bar">
+    <div class="level-info">Poziom: <span id="level-num">1</span>/2</div>
+    <div class="timer-info">Czas: <span id="timer">20</span>s</div>
+  </div>
+
+  <canvas id="gameCanvas" width="360" height="480"></canvas>
+
+  <div class="instructions">
+    Sterowanie: <b>A</b> (Lewo) / <b>D</b> (Prawo) lub Strzałki ⬅ ➡
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="startGame()">RESET / START</button>
+    <a href="../index.html" class="btn back-btn">⬅ Powrót do menu</a>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let currentLevel = 1;
+    let timeLeft = 20;
+    let gameLoopId = null;
+    let timerInterval = null;
+    let gameOver = false;
+    let gameWon = false;
+    let isTransitioning = false;
+    let countdownText = "";
+
+    const keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false };
+
+    function resetKeys() {
+      keys.a = false;
+      keys.d = false;
+      keys.ArrowLeft = false;
+      keys.ArrowRight = false;
+    }
+
+    const player = {
+      x: canvas.width / 2,
+      y: canvas.height - 40,
+      size: 16,
+      speed: 6.5
+    };
+
+    let obstacles = [];
+    let spawnTimer = 0;
+
+    // Znacznie wolniejsze ustawienia poziomów
+    const levelConfig = {
+      1: {
+        duration: 20,
+        speed: 1.5,         // ZWOLNIONE z 2.2 na 1.5
+        spawnInterval: 80,  // Duży odstęp czasowy
+        gapWidth: 105       // Bardzo szeroka wyrwa
+      },
+      2: {
+        duration: 30,
+        speed: 2.3,         // ZWOLNIONE z 3.3 na 2.3
+        spawnInterval: 55,  // Rozsądny odstęp
+        gapWidth: 95        // Szeroka wyrwa
+      }
+    };
+
+    window.addEventListener('keydown', (e) => {
+      if (['a', 'A', 'ArrowLeft'].includes(e.key)) keys.a = true;
+      if (['d', 'D', 'ArrowRight'].includes(e.key)) keys.d = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (['a', 'A', 'ArrowLeft'].includes(e.key)) keys.a = false;
+      if (['d', 'D', 'ArrowRight'].includes(e.key)) keys.d = false;
+    });
+
+    window.addEventListener('blur', resetKeys);
+
+    function startLevel(lvl) {
+      currentLevel = lvl;
+      const config = levelConfig[lvl];
+      timeLeft = config.duration;
+      gameOver = false;
+      gameWon = false;
+      isTransitioning = false;
+      obstacles = [];
+      spawnTimer = 0;
+      player.x = canvas.width / 2;
+      resetKeys();
+
+      document.getElementById('level-num').innerText = currentLevel;
+      document.getElementById('timer').innerText = timeLeft;
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (isTransitioning || gameOver) return;
+
+        timeLeft--;
+        document.getElementById('timer').innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          if (currentLevel === 1) {
+            triggerTransitionToLevel2();
+          } else {
+            gameWon = true;
+            gameOver = true;
+          }
+        }
+      }, 1000);
+
+      if (gameLoopId) cancelAnimationFrame(gameLoopId);
+      gameLoop();
+    }
+
+    function triggerTransitionToLevel2() {
+      isTransitioning = true;
+      resetKeys();
+      let count = 3;
+      countdownText = `POZIOM 2 ZA ${count}...`;
+
+      const transitionInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownText = `POZIOM 2 ZA ${count}...`;
+        } else {
+          clearInterval(transitionInterval);
+          startLevel(2);
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      startLevel(1);
+    }
+
+    function spawnObstacle() {
+      const config = levelConfig[currentLevel];
+      const gapWidth = config.gapWidth;
+      const gapX = Math.random() * (canvas.width - gapWidth);
+
+      obstacles.push({
+        x: 0,
+        y: -20,
+        width: gapX,
+        height: 18
+      });
+
+      obstacles.push({
+        x: gapX + gapWidth,
+        y: -20,
+        width: canvas.width - (gapX + gapWidth),
+        height: 18
+      });
+    }
+
+    function update() {
+      if (gameOver || isTransitioning) return;
+
+      const config = levelConfig[currentLevel];
+
+      if ((keys.a || keys.ArrowLeft) && player.x - player.size > 0) {
+        player.x -= player.speed;
+      }
+      if ((keys.d || keys.ArrowRight) && player.x + player.size < canvas.width) {
+        player.x += player.speed;
+      }
+
+      spawnTimer++;
+      if (spawnTimer >= config.spawnInterval) {
+        spawnObstacle();
+        spawnTimer = 0;
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.y += config.speed;
+
+        if (
+          player.x + player.size > obs.x &&
+          player.x - player.size < obs.x + obs.width &&
+          player.y + player.size > obs.y &&
+          player.y - player.size < obs.y + obs.height
+        ) {
+          gameOver = true;
+          clearInterval(timerInterval);
+        }
+
+        if (obs.y > canvas.height) {
+          obstacles.splice(i, 1);
+        }
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = '#121517';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#ff007f';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#ff007f';
+      obstacles.forEach(obs => {
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+      });
+
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.y - player.size);
+      ctx.lineTo(player.x - player.size, player.y + player.size);
+      ctx.lineTo(player.x + player.size, player.y + player.size);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+
+      if (isTransitioning) {
+        ctx.fillStyle = 'rgba(11, 13, 14, 0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ff007f';
+        ctx.font = 'bold 22px Segoe UI';
+        ctx.fillText('🔥 POZIOM 1 UKOŃCZONY!', canvas.width / 2, canvas.height / 2 - 15);
+        ctx.fillStyle = '#fff';
+        ctx.font = '18px Segoe UI';
+        ctx.fillText(countdownText, canvas.width / 2, canvas.height / 2 + 25);
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(11, 13, 14, 0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.textAlign = 'center';
+        if (gameWon) {
+          ctx.fillStyle = '#4caf50';
+          ctx.font = 'bold 24px Segoe UI';
+          ctx.fillText('🏆 MISJA UKOŃCZONA!', canvas.width / 2, canvas.height / 2 - 10);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px Segoe UI';
+          ctx.fillText('Przetrwałeś oba poziomy!', canvas.width / 2, canvas.height / 2 + 20);
+        } else {
+          ctx.fillStyle = '#ff007f';
+          ctx.font = 'bold 26px Segoe UI';
+          ctx.fillText('💥 PRZEGRANA!', canvas.width / 2, canvas.height / 2 - 10);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px Segoe UI';
+          ctx.fillText('Wleciałeś w ścianę!', canvas.width / 2, canvas.height / 2 + 20);
+        }
+      }
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      if (!gameOver || isTransitioning) {
+        gameLoopId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    startGame();
+  </script>
+</body>
+</html>

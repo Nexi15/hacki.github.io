@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fleeca Bank - System Hakerski</title>
+  <style>
+    :root {
+      --bg-main: #070913;
+      --panel-bg: rgba(18, 22, 36, 0.75);
+      --panel-border: rgba(0, 243, 255, 0.18);
+      --accent-cyan: #00f3ff;
+      --accent-pink: #ff007f;
+      --accent-green: #00ff88;
+      --accent-red: #ff3366;
+      --text-main: #f0f4f8;
+      --text-muted: #8a99ad;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(255, 0, 127, 0.05) 0%, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      user-select: none;
+    }
+
+    /* NAGŁÓWEK / TABSY */
+    .app-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .app-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 15px;
+      text-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+
+    .level-tabs {
+      display: flex;
+      gap: 10px;
+      background: rgba(12, 15, 26, 0.8);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(0, 243, 255, 0.05));
+      color: var(--accent-cyan);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+
+    .tab-btn.active.tab-pink {
+      background: linear-gradient(135deg, rgba(255, 0, 127, 0.2), rgba(255, 0, 127, 0.05));
+      color: var(--accent-pink);
+      border: 1px solid var(--accent-pink);
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.2);
+    }
+
+    .tab-btn.active.tab-green {
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.05));
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+    }
+
+    /* KONTENERY POZIOMÓW */
+    .level-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .level-container.active {
+      display: flex;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 22px;
+      width: 100%;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    /* PASEK CZASU */
+    .progress-bar-bg {
+      background: rgba(255, 255, 255, 0.08);
+      height: 6px;
+      border-radius: 4px;
+      width: 100%;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 100%;
+      transition: width 0.08s linear;
+    }
+
+    /* PRZYCISKI KONTROLNE */
+    .controls {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .btn {
+      background: rgba(0, 243, 255, 0.08);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    }
+
+    .btn-pink {
+      background: rgba(255, 0, 127, 0.08);
+      border-color: var(--accent-pink);
+      color: var(--accent-pink);
+    }
+    .btn-pink:hover {
+      background: var(--accent-pink);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.4);
+    }
+
+    .btn-green {
+      background: rgba(0, 255, 136, 0.08);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+    .btn-green:hover {
+      background: var(--accent-green);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    }
+
+    /* RESULT OVERLAY */
+    .result-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 12, 20, 0.95);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+    }
+
+    /* ================= POZIOM 1 (SIEĆ) ================= */
+    #gameCanvas {
+      background: rgba(7, 10, 18, 0.9);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      border-radius: 10px;
+      box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.05);
+      cursor: grab;
+      width: 100%;
+      height: 320px;
+      display: block;
+    }
+    #gameCanvas:active { cursor: grabbing; }
+
+    .settings-panel {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      width: 100%;
+    }
+
+    .diff-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .diff-btn.active, .diff-btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    /* ================= POZIOM 2 (MINY) ================= */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      background: rgba(5, 7, 12, 0.9);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 0, 127, 0.2);
+    }
+
+    .cell-2 {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .cell-2:hover {
+      border-color: var(--accent-pink);
+      background: rgba(255, 0, 127, 0.1);
+    }
+    .cell-2.has-mine {
+      border-color: var(--accent-pink);
+      background: rgba(255, 0, 127, 0.25);
+      box-shadow: 0 0 10px rgba(255, 0, 127, 0.4);
+    }
+    .cell-2.has-mine::after {
+      content: '';
+      width: 8px; height: 8px;
+      background: var(--accent-pink);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--accent-pink);
+    }
+    .cell-2.wrong {
+      background: rgba(255, 51, 102, 0.6) !important;
+      border-color: var(--accent-red) !important;
+    }
+
+    /* ================= POZIOM 3 (ŚCIEŻKA) ================= */
+    .board-3 {
+      position: relative;
+      width: 100%;
+      height: 350px;
+      background: rgba(5, 7, 12, 0.9);
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    svg.lines-layer-3 {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    line.node-line {
+      stroke: var(--accent-green);
+      stroke-width: 3;
+      stroke-linecap: round;
+      filter: drop-shadow(0px 0px 6px var(--accent-green));
+    }
+
+    .node-3 {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #101726;
+      border: 2px solid rgba(0, 255, 136, 0.3);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      transition: all 0.15s ease;
+    }
+    .node-3:hover {
+      border-color: var(--accent-green);
+      color: #fff;
+      transform: translate(-50%, -50%) scale(1.15);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    .node-3.active {
+      background: rgba(0, 255, 136, 0.25);
+      border-color: var(--accent-green);
+      color: #fff;
+      box-shadow: 0 0 12px var(--accent-green);
+    }
+    .node-3.wrong {
+      background: rgba(255, 51, 102, 0.5);
+      border-color: var(--accent-red);
+      box-shadow: 0 0 12px var(--accent-red);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <div class="app-title">⚡ Fleeca Bank Systems ⚡</div>
+    <div class="level-tabs">
+      <button class="tab-btn active" id="tab-lvl1" onclick="switchLevel(1)">1: ROZPLĄTYWANIE (15 KÓŁEK)</button>
+      <button class="tab-btn tab-pink" id="tab-lvl2" onclick="switchLevel(2)">2: MINY</button>
+      <button class="tab-btn tab-green" id="tab-lvl3" onclick="switchLevel(3)">3: ŚCIEŻKA</button>
+    </div>
+  </div>
+
+  <div id="level1" class="level-container active">
+    <div class="card">
+      <div class="card-header" style="color: var(--accent-cyan);">
+        <span>🔷 Węzły Sieci (15 Kółek)</span>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Przecięcia: <b id="crossings" style="color:var(--accent-red)">0</b></span>
+      </div>
+
+      <div class="progress-bar-bg">
+        <div id="progressFill1" class="progress-bar-fill" style="background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan);"></div>
+      </div>
+
+      <canvas id="gameCanvas" width="470" height="320"></canvas>
+
+      <div class="settings-panel">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Tryb:</span>
+          <button class="diff-btn active" id="btn-fleeca" onclick="setPreset1(15, 'btn-fleeca')">FLEECA (15 KÓŁEK)</button>
+          <button class="diff-btn" id="btn-easy" onclick="setPreset1(8, 'btn-easy')">EASY (8)</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" onclick="initLevel1()">RESTART</button>
+      </div>
+
+      <div id="resultOverlay1" class="result-overlay" style="display: none;">
+        <div id="resultTitle1" style="font-size: 1.5rem; font-weight: 800;"></div>
+        <div id="resultSub1" style="color: var(--text-muted); font-size: 0.9rem;"></div>
+        <button class="btn" onclick="initLevel1()">SPRÓBUJ PONOWNIE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="level2" class="level-container">
+    <div class="card" style="border-color: rgba(255, 0, 127, 0.3);">
+      <div class="card-header" style="color: var(--accent-pink);">
+        <span>💣 Zapamiętywanie Min</span>
+        <span id="stageCounter2" style="font-size: 0.85rem; color: var(--text-muted);">Runda 0/2</span>
+      </div>
+
+      <div class="progress-bar-bg">
+        <div id="progressFill2" class="progress-bar-fill" style="background: var(--accent-pink); box-shadow: 0 0 8px var(--accent-pink);"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 12px; font-weight: 700;">
+        <span id="statusText2" style="color: var(--accent-pink);">ZAPAMIĘTAJ MINY</span>
+        <div>
+          <span id="minesCounter2">0/8</span> | <span id="errorsCounter2" style="color: var(--accent-red);">Błędy: 0/2</span>
+        </div>
+      </div>
+
+      <div class="grid-2" id="grid2"></div>
+
+      <div class="controls">
+        <button class="btn btn-pink" onclick="initLevel2()">RESTART</button>
+      </div>
+
+      <div id="resultOverlay2" class="result-overlay" style="display: none;">
+        <div id="resultTitle2" style="font-size: 1.5rem; font-weight: 800;"></div>
+        <div id="resultSub2" style="color: var(--text-muted); font-size: 0.9rem;"></div>
+        <button class="btn btn-pink" onclick="initLevel2()">SPRÓBUJ PONOWNIE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="level3" class="level-container">
+    <div class="card" style="border-color: rgba(0, 255, 136, 0.3);">
+      <div class="card-header" style="color: var(--accent-green);">
+        <span>🔗 Ścieżka Punktów</span>
+        <span id="stageText3" style="font-size: 0.85rem; color: var(--text-muted);">ETAP: 0/2</span>
+      </div>
+
+      <div class="progress-bar-bg">
+        <div id="progressFill3" class="progress-bar-fill" style="background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green);"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 12px; font-weight: 700;">
+        <span id="nextTargetText3" style="color: var(--accent-green);">DALEJ: 1</span>
+        <span id="progressText3" style="color: var(--text-muted);">0/16</span>
+      </div>
+
+      <div class="board-3" id="board3">
+        <svg class="lines-layer-3" id="svgLines3"></svg>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-green" onclick="initLevel3()">RESTART</button>
+      </div>
+
+      <div id="resultOverlay3" class="result-overlay" style="display: none;">
+        <div id="resultTitle3" style="font-size: 1.5rem; font-weight: 800;"></div>
+        <div id="resultSub3" style="color: var(--text-muted); font-size: 0.9rem;"></div>
+        <button class="btn btn-green" onclick="initLevel3()">SPRÓBUJ PONOWNIE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* SYSTEM PRZEŁĄCZANIA TABA */
+    function switchLevel(lvl) {
+      document.querySelectorAll('.level-container').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      clearInterval(timerInterval1);
+      clearInterval(timerInterval2);
+      clearInterval(timerInterval3);
+
+      document.getElementById(`level${lvl}`).classList.add('active');
+      document.getElementById(`tab-lvl${lvl}`).classList.add('active');
+
+      if (lvl === 1) initLevel1();
+      else if (lvl === 2) initLevel2();
+      else if (lvl === 3) initLevel3();
+    }
+
+    /* ========================================================= */
+    /* LOGIKA POZIOM 1: ROZPLĄTYWANIE (DOMYŚLNIE 15 KÓŁEK)        */
+    /* ========================================================= */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let nodeCount1 = 15; // Domyślnie 15 kółek
+    const NODE_RADIUS = 10;
+    let nodes1 = [], edges1 = [], draggedNode1 = null;
+    let timeLeft1 = 60.0, timerInterval1 = null, gameOver1 = false;
+
+    function setPreset1(count, btnId) {
+      nodeCount1 = count;
+      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(btnId).classList.add('active');
+      initLevel1();
+    }
+
+    function intersects(a, b, c, d) {
+      if ((a.x === c.x && a.y === c.y) || (a.x === d.x && a.y === d.y) ||
+          (b.x === c.x && b.y === c.y) || (b.x === d.x && b.y === d.y)) return false;
+      function ccw(p1, p2, p3) { return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x); }
+      return (ccw(a, c, d) !== ccw(b, c, d)) && (ccw(a, b, c) !== ccw(a, b, d));
+    }
+
+    function generateGraph1() {
+      nodes1 = []; edges1 = [];
+      for (let i = 0; i < nodeCount1; i++) nodes1.push({ x: 0, y: 0 });
+      for (let i = 1; i < nodeCount1; i++) edges1.push([0, i]);
+      const outerCount = nodeCount1 - 1;
+      for (let i = 0; i < outerCount; i++) edges1.push([1 + i, 1 + ((i + 1) % outerCount)]);
+
+      nodes1.forEach(n => {
+        n.x = Math.floor(40 + Math.random() * (canvas.width - 80));
+        n.y = Math.floor(40 + Math.random() * (canvas.height - 80));
+      });
+    }
+
+    function countCrossings1() {
+      let count = 0;
+      for (let i = 0; i < edges1.length; i++) {
+        for (let j = i + 1; j < edges1.length; j++) {
+          if (intersects(nodes1[edges1[i][0]], nodes1[edges1[i][1]], nodes1[edges1[j][0]], nodes1[edges1[j][1]])) count++;
+        }
+      }
+      return count;
+    }
+
+    function initLevel1() {
+      gameOver1 = false; timeLeft1 = 60.0; draggedNode1 = null;
+      document.getElementById('resultOverlay1').style.display = 'none';
+      generateGraph1();
+
+      clearInterval(timerInterval1);
+      timerInterval1 = setInterval(() => {
+        if (gameOver1) return;
+        timeLeft1 -= 0.1;
+        let pct = Math.max(0, (timeLeft1 / 60.0) * 100);
+        document.getElementById('progressFill1').style.width = `${pct}%`;
+
+        if (timeLeft1 <= 0) endGame1(false, "💥 CZAS UPŁYNĄŁ!");
+      }, 100);
+      draw1();
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (gameOver1) return;
+      const rect = canvas.getBoundingClientRect();
+      const mX = e.clientX - rect.left, mY = e.clientY - rect.top;
+      nodes1.forEach(n => { if (Math.hypot(n.x - mX, n.y - mY) < NODE_RADIUS + 8) draggedNode1 = n; });
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (draggedNode1 && !gameOver1) {
+        const rect = canvas.getBoundingClientRect();
+        draggedNode1.x = Math.max(NODE_RADIUS, Math.min(canvas.width - NODE_RADIUS, e.clientX - rect.left));
+        draggedNode1.y = Math.max(NODE_RADIUS, Math.min(canvas.height - NODE_RADIUS, e.clientY - rect.top));
+        draw1();
+      }
+    });
+
+    window.addEventListener('mouseup', () => draggedNode1 = null);
+
+    function draw1() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const crossings = countCrossings1();
+      document.getElementById('crossings').innerText = crossings;
+
+      edges1.forEach(e => {
+        const n1 = nodes1[e[0]], n2 = nodes1[e[1]];
+        let isIntersected = edges1.some(oE => e !== oE && intersects(n1, n2, nodes1[oE[0]], nodes1[oE[1]]));
+        ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(n2.x, n2.y); ctx.lineWidth = 2;
+        ctx.strokeStyle = isIntersected ? '#ff3366' : '#00f3ff';
+        ctx.shadowBlur = isIntersected ? 4 : 8;
+        ctx.shadowColor = ctx.strokeStyle;
+        ctx.stroke();
+      });
+
+      nodes1.forEach(n => {
+        ctx.fillStyle = '#00f3ff'; ctx.shadowBlur = 10; ctx.shadowColor = '#00f3ff';
+        ctx.beginPath(); ctx.arc(n.x, n.y, NODE_RADIUS, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 0;
+        ctx.beginPath(); ctx.arc(n.x, n.y, 3, 0, Math.PI * 2); ctx.fill();
+      });
+
+      if (crossings === 0 && !gameOver1) {
+        endGame1(true, "🔓 SIEC ROZPLĄTANA!");
+      }
+    }
+
+    function endGame1(win, msg) {
+      gameOver1 = true;
+      clearInterval(timerInterval1);
+      const overlay = document.getElementById('resultOverlay1');
+      overlay.style.display = 'flex';
+      const title = document.getElementById('resultTitle1');
+      title.innerText = win ? "SUKCES" : "PORAŻKA";
+      title.style.color = win ? "#00ff88" : "#ff3366";
+      document.getElementById('resultSub1').innerText = msg;
+    }
+
+    /* ========================================================= */
+    /* LOGIKA POZIOM 2: MINY                                     */
+    /* ========================================================= */
+    const GRID_SIZE = 8, TOTAL_MINES = 8, MEMORY_TIME = 8.0, TARGET_STAGES_2 = 2, MAX_ERRORS = 2;
+    let mines2 = [], selectedMines2 = [], wrongSelections2 = [], currentStage2 = 0, errorsCount2 = 0;
+    let isMemoryPhase2 = false, timerInterval2 = null, isGameOver2 = false;
+
+    function createGrid2() {
+      const gridEl = document.getElementById('grid2');
+      gridEl.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell-2');
+        cell.addEventListener('click', () => handleCellClick2(i));
+        gridEl.appendChild(cell);
+      }
+    }
+
+    function initLevel2() {
+      currentStage2 = 0; errorsCount2 = 0; isGameOver2 = false;
+      document.getElementById('resultOverlay2').style.display = 'none';
+      createGrid2();
+      startMemoryPhase2();
+    }
+
+    function startMemoryPhase2() {
+      if (isGameOver2) return;
+      isMemoryPhase2 = true; selectedMines2 = []; wrongSelections2 = []; mines2 = [];
+      
+      while (mines2.length < TOTAL_MINES) {
+        let r = Math.floor(Math.random() * 64);
+        if (!mines2.includes(r)) mines2.push(r);
+      }
+
+      document.getElementById('statusText2').innerText = "ZAPAMIĘTAJ MINY";
+      document.getElementById('minesCounter2').innerText = `0/${TOTAL_MINES}`;
+      document.getElementById('errorsCounter2').innerText = `Błędy: ${errorsCount2}/${MAX_ERRORS}`;
+      document.getElementById('stageCounter2').innerText = `Runda ${currentStage2}/${TARGET_STAGES_2}`;
+
+      const cells = document.querySelectorAll('.cell-2');
+      cells.forEach((c, i) => {
+        c.className = 'cell-2';
+        if (mines2.includes(i)) c.classList.add('has-mine');
+      });
+
+      let start = Date.now();
+      clearInterval(timerInterval2);
+      timerInterval2 = setInterval(() => {
+        let elapsed = (Date.now() - start) / 1000;
+        let rem = Math.max(0, MEMORY_TIME - elapsed);
+        document.getElementById('progressFill2').style.width = `${(rem / MEMORY_TIME) * 100}%`;
+        if (rem <= 0) { clearInterval(timerInterval2); startSelectionPhase2(); }
+      }, 50);
+    }
+
+    function startSelectionPhase2() {
+      isMemoryPhase2 = false;
+      document.getElementById('statusText2').innerText = "ZAZNACZ MINY";
+      document.querySelectorAll('.cell-2').forEach(c => c.className = 'cell-2');
+    }
+
+    function handleCellClick2(idx) {
+      if (isMemoryPhase2 || isGameOver2) return;
+      const cells = document.querySelectorAll('.cell-2');
+      if (selectedMines2.includes(idx) || wrongSelections2.includes(idx)) return;
+
+      if (mines2.includes(idx)) {
+        selectedMines2.push(idx);
+        cells[idx].classList.add('has-mine');
+        document.getElementById('minesCounter2').innerText = `${selectedMines2.length}/${TOTAL_MINES}`;
+
+        if (selectedMines2.length === TOTAL_MINES) {
+          currentStage2++;
+          if (currentStage2 >= TARGET_STAGES_2) endGame2(true, "SYSTEM ZAKOŃCZONY SUKCESEM!");
+          else setTimeout(startMemoryPhase2, 600);
+        }
+      } else {
+        wrongSelections2.push(idx);
+        cells[idx].classList.add('wrong');
+        errorsCount2++;
+        document.getElementById('errorsCounter2').innerText = `Błędy: ${errorsCount2}/${MAX_ERRORS}`;
+        if (errorsCount2 >= MAX_ERRORS) endGame2(false, "🚨 URUCHOMIONO ALARM!");
+      }
+    }
+
+    function endGame2(win, msg) {
+      isGameOver2 = true;
+      clearInterval(timerInterval2);
+      const overlay = document.getElementById('resultOverlay2');
+      overlay.style.display = 'flex';
+      const title = document.getElementById('resultTitle2');
+      title.innerText = win ? "SUKCES" : "PORAŻKA";
+      title.style.color = win ? "#00ff88" : "#ff3366";
+      document.getElementById('resultSub2').innerText = msg;
+    }
+
+    /* ========================================================= */
+    /* LOGIKA POZIOM 3: ŚCIEŻKA                                  */
+    /* ========================================================= */
+    const TOTAL_NODES_3 = 16, TARGET_STAGES_3 = 2, STAGE_TIME_3 = 15.0;
+    let currentStage3 = 0, nextExpectedNumber3 = 1, nodePositions3 = [], clickedSequence3 = [];
+    let isGameOver3 = false, timerInterval3 = null;
+
+    function initLevel3() {
+      currentStage3 = 0;
+      isGameOver3 = false;
+      document.getElementById('resultOverlay3').style.display = 'none';
+      startStage3();
+    }
+
+    function startStage3() {
+      nextExpectedNumber3 = 1; clickedSequence3 = []; nodePositions3 = [];
+      document.getElementById('nextTargetText3').innerText = `DALEJ: 1`;
+      document.getElementById('progressText3').innerText = `0/${TOTAL_NODES_3}`;
+      document.getElementById('stageText3').innerText = `ETAP: ${currentStage3}/${TARGET_STAGES_3}`;
+
+      clearBoard3();
+      generateNodes3();
+      startTimer3();
+    }
+
+    function clearBoard3() {
+      const board = document.getElementById('board3');
+      const svg = document.getElementById('svgLines3');
+      document.querySelectorAll('.node-3').forEach(n => n.remove());
+      svg.innerHTML = '';
+    }
+
+    function generateNodes3() {
+      const board = document.getElementById('board3');
+      const boardW = board.clientWidth || 470;
+      const boardH = board.clientHeight || 350;
+      const padding = 35;
+
+      for (let i = 1; i <= TOTAL_NODES_3; i++) {
+        let validPos = false, posX, posY, attempts = 0;
+        while (!validPos && attempts < 200) {
+          attempts++;
+          posX = Math.floor(padding + Math.random() * (boardW - padding * 2));
+          posY = Math.floor(padding + Math.random() * (boardH - padding * 2));
+          validPos = nodePositions3.every(pos => Math.hypot(pos.x - posX, pos.y - posY) >= 42);
+        }
+
+        nodePositions3.push({ num: i, x: posX, y: posY });
+
+        const nodeEl = document.createElement('div');
+        nodeEl.classList.add('node-3');
+        nodeEl.innerText = i;
+        nodeEl.style.left = `${posX}px`;
+        nodeEl.style.top = `${posY}px`;
+
+        nodeEl.addEventListener('click', () => handleNodeClick3(i, posX, posY, nodeEl));
+        board.appendChild(nodeEl);
+      }
+    }
+
+    function startTimer3() {
+      clearInterval(timerInterval3);
+      let startTime = Date.now();
+
+      timerInterval3 = setInterval(() => {
+        if (isGameOver3) return;
+        let elapsed = (Date.now() - startTime) / 1000;
+        let rem = Math.max(0, STAGE_TIME_3 - elapsed);
+        document.getElementById('progressFill3').style.width = `${(rem / STAGE_TIME_3) * 100}%`;
+
+        if (rem <= 0) endGame3(false, "💥 CZAS UPŁYNĄŁ!");
+      }, 50);
+    }
+
+    function handleNodeClick3(num, x, y, el) {
+      if (isGameOver3) return;
+
+      if (num === nextExpectedNumber3) {
+        el.classList.add('active');
+        if (clickedSequence3.length > 0) {
+          let lastPos = clickedSequence3[clickedSequence3.length - 1];
+          drawLine3(lastPos.x, lastPos.y, x, y);
+        }
+
+        clickedSequence3.push({ num, x, y });
+        document.getElementById('progressText3').innerText = `${num}/${TOTAL_NODES_3}`;
+        nextExpectedNumber3++;
+
+        if (nextExpectedNumber3 <= TOTAL_NODES_3) {
+          document.getElementById('nextTargetText3').innerText = `DALEJ: ${nextExpectedNumber3}`;
+        } else {
+          currentStage3++;
+          if (currentStage3 >= TARGET_STAGES_3) endGame3(true, "🔓 FLEECA ROZPRACOWANA!");
+          else setTimeout(startStage3, 500);
+        }
+      } else {
+        el.classList.add('wrong');
+        endGame3(false, "💥 ZŁA KOLEJNOŚĆ!");
+      }
+    }
+
+    function drawLine3(x1, y1, x2, y2) {
+      const svg = document.getElementById('svgLines3');
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.classList.add('node-line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      svg.appendChild(line);
+    }
+
+    function endGame3(win, msg) {
+      isGameOver3 = true;
+      clearInterval(timerInterval3);
+      const overlay = document.getElementById('resultOverlay3');
+      overlay.style.display = 'flex';
+      const title = document.getElementById('resultTitle3');
+      title.innerText = win ? "SUKCES" : "PORAŻKA";
+      title.style.color = win ? "#00ff88" : "#ff3366";
+      document.getElementById('resultSub3').innerText = msg;
+    }
+
+    // Start
+    initLevel1();
+  </script>
+</body>
+</html>

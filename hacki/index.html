@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ONBEAT.GG // Hacks System</title>
+  <style>
+    :root {
+      --primary: #00f0ff;
+      --primary-glow: rgba(0, 240, 255, 0.4);
+      --bg-dark: #020408;
+      --panel-bg: rgba(8, 12, 20, 0.6);
+      --border: rgba(255, 255, 255, 0.08);
+      --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Spotlight */
+    .ambient-glow {
+      position: fixed;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      top: 50%;
+      left: 35%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 0;
+      transition: background 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      filter: blur(100px);
+      opacity: 0.5;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* MAIN CONTAINER */
+    .dashboard {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1150px;
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 35px;
+      align-items: center;
+    }
+
+    /* SHOWCASE PANEL (LEWY) */
+    .showcase-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      padding: 45px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 520px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Holograficzne Tło w Panelu */
+    .holo-bg-icon {
+      position: absolute;
+      right: -20px;
+      bottom: -20px;
+      width: 280px;
+      height: 280px;
+      color: var(--primary);
+      opacity: 0.08;
+      pointer-events: none;
+      transition: all 0.6s ease;
+      transform: rotate(-10deg);
+    }
+
+    .holo-bg-icon svg {
+      width: 100%; height: 100%;
+    }
+
+    .showcase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .sys-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: var(--primary);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: color 0.5s ease;
+    }
+
+    .sys-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--primary);
+      animation: pulse 1.8s infinite;
+      transition: background-color 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+    }
+
+    .difficulty-badge {
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 6px 16px;
+      border-radius: 30px;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-glow);
+      transition: all 0.5s ease;
+    }
+
+    .showcase-content {
+      margin: 40px 0;
+      z-index: 2;
+    }
+
+    .showcase-title {
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      transition: all 0.5s ease;
+    }
+
+    .showcase-desc {
+      color: #94a3b8;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      max-width: 92%;
+      font-weight: 400;
+    }
+
+    /* Przycisk Launchera */
+    .launch-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: 100%;
+      padding: 20px;
+      background: var(--primary);
+      color: #030712;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px var(--primary-glow);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 2;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .launch-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .launch-btn:hover::before {
+      left: 100%;
+    }
+
+    .launch-btn:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 20px 40px var(--primary-glow);
+      background: #ffffff;
+    }
+
+    .launch-btn svg {
+      width: 22px;
+      height: 22px;
+      transition: transform 0.3s ease;
+    }
+
+    .launch-btn:hover svg {
+      transform: translateX(6px);
+    }
+
+    /* SELECTOR PANEL (PRAWY) */
+    .selector-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .selector-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      padding-left: 6px;
+    }
+
+    .option-card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-info {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .option-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      transition: all 0.35s ease;
+    }
+
+    .option-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .option-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      transition: color 0.35s ease;
+    }
+
+    /* Stan Aktywny / Hover */
+    .option-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateX(8px);
+    }
+
+    .option-card.active {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--opt-color);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--opt-glow);
+      transform: translateX(12px);
+    }
+
+    .option-card.active .option-icon {
+      background: var(--opt-color);
+      color: #030712;
+      box-shadow: 0 0 20px var(--opt-color);
+    }
+
+    .option-card.active .option-name {
+      color: #ffffff;
+    }
+
+    .active-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--opt-color);
+      opacity: 0;
+      box-shadow: 0 0 12px var(--opt-color);
+      transition: all 0.35s ease;
+      transform: scale(0.5);
+    }
+
+    .option-card.active .active-indicator {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    @media (max-width: 950px) {
+      .dashboard { grid-template-columns: 1fr; }
+      .showcase-panel { min-height: auto; padding: 35px; }
+      .showcase-title { font-size: 2.6rem; }
+      .option-card.active { transform: translateX(0) translateY(-4px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow" id="ambientGlow"></div>
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="dashboard">
+
+    <!-- SHOWCASE PANEL (LEWY) -->
+    <div class="showcase-panel" id="showcasePanel">
+      
+      <div class="holo-bg-icon" id="holoBg">
+        <svg id="holoSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18h6m-4 3h2M12 2a6 6 0 0 0-6 6c0 2.2 1.2 4.1 3 5.2V15a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1.8c1.8-1.1 3-3 3-5.2a6 6 0 0 0-6-6z"/>
+        </svg>
+      </div>
+
+      <div class="showcase-header">
+        <div class="sys-tag">
+          <div class="sys-dot"></div> ONBEAT HUD v3.0
+        </div>
+        <div class="difficulty-badge" id="diffBadge">MEDIUM</div>
+      </div>
+
+      <div class="showcase-content">
+        <h1 class="showcase-title" id="showcaseTitle">LIGHTS OUT</h1>
+        <p class="showcase-desc" id="showcaseDesc">
+          Trening matrycowy polegający na wygaszaniu połączeń w jak najkrótszym czasie. Wymaga wyobraźni przestrzennej i błyskawicznego planowania.
+        </p>
+      </div>
+
+      <a href="lightsout/index.html" class="launch-btn" id="launchBtn">
+        <span>INICJUJ HACK</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!-- SELECTOR PANEL (PRAWY) -->
+    <div class="selector-panel">
+      <div class="selector-title">// MODUŁY TRENINGOWE</div>
+
+      <!-- 1. Lights Out -->
+      <div class="option-card active" style="--opt-color: #00f0ff; --opt-glow: rgba(0, 240, 255, 0.3);" 
+           data-title="LIGHTS OUT" 
+           data-desc="Trening matrycowy polegający na wygaszaniu połączeń w jak najkrótszym czasie. Wymaga wyobraźni przestrzennej i błyskawicznego planowania."
+           data-diff="MEDIUM"
+           data-color="#00f0ff"
+           data-glow="rgba(0, 240, 255, 0.4)"
+           data-href="lights-out/index.html"
+           data-svg='<path d="M9 18h6m-4 3h2M12 2a6 6 0 0 0-6 6c0 2.2 1.2 4.1 3 5.2V15a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1.8c1.8-1.1 3-3 3-5.2a6 6 0 0 0-6-6z"/>'>
+        <div class="option-info">
+          <div class="option-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18h6m-4 3h2M12 2a6 6 0 0 0-6 6c0 2.2 1.2 4.1 3 5.2V15a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1.8c1.8-1.1 3-3 3-5.2a6 6 0 0 0-6-6z"/>
+            </svg>
+          </div>
+          <div class="option-name">LIGHTS OUT</div>
+        </div>
+        <div class="active-indicator"></div>
+      </div>
+
+      <!-- 2. Alarm -->
+      <div class="option-card" style="--opt-color: #ffe600; --opt-glow: rgba(255, 230, 0, 0.3);" 
+           data-title="ALARM" 
+           data-desc="Test pamięci krótkotrwałej i odtwarzanie sekwencji sygnałów ostrzegawczych pod narzuconą presją zapisu danych."
+           data-diff="EASY"
+           data-color="#ffe600"
+           data-glow="rgba(255, 230, 0, 0.4)"
+           data-href="alarm/index.html"
+           data-svg='<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>'>
+        <div class="option-info">
+          <div class="option-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <div class="option-name">ALARM</div>
+        </div>
+        <div class="active-indicator"></div>
+      </div>
+
+      <!-- 3. Ammunation (NOWA BROŃ/PISTOLET) -->
+      <div class="option-card" style="--opt-color: #ff007f; --opt-glow: rgba(255, 0, 127, 0.3);" 
+           data-title="AMMUNATION" 
+           data-desc="Maksymalny test czasu reakcji oraz koordynacji. Wymaga wyeliminowania celów w ułamkach sekund."
+           data-diff="HARD"
+           data-color="#ff007f"
+           data-glow="rgba(255, 0, 127, 0.4)"
+           data-href="ammunation/index.html"
+           data-svg='<path d="M3 11h11l3-3h4v4h-2v3h-3l-2 5h-4l1-5H9l-2-4H3v-4zM13 11v3"/>'>
+        <div class="option-info">
+          <div class="option-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 11h11l3-3h4v4h-2v3h-3l-2 5h-4l1-5H9l-2-4H3v-4zM13 11v3"/>
+            </svg>
+          </div>
+          <div class="option-name">AMMUNATION</div>
+        </div>
+        <div class="active-indicator"></div>
+      </div>
+
+      <!-- 4. Jacht -->
+      <div class="option-card" style="--opt-color: #ff3355; --opt-glow: rgba(255, 51, 85, 0.3);" 
+           data-title="JACHT" 
+           data-desc="Przełamywanie szyfrów morskich systemów nawigacji. Złożony ciąg sekwencyjny dla zaawansowanych."
+           data-diff="HARD"
+           data-color="#ff3355"
+           data-glow="rgba(255, 51, 85, 0.4)"
+           data-href="jacht/index.html"
+           data-svg='<path d="M12 2v11m0 0l-7-2 7 2zm0 0l8-3-8 3zM3 17h18l-2 4H5l-2-4z"/>'>
+        <div class="option-info">
+          <div class="option-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v11m0 0l-7-2 7 2zm0 0l8-3-8 3zM3 17h18l-2 4H5l-2-4z"/>
+            </svg>
+          </div>
+          <div class="option-name">JACHT</div>
+        </div>
+        <div class="active-indicator"></div>
+      </div>
+
+      <!-- 5. Fleeca (NOWY WOREK Z KASĄ) -->
+      <div class="option-card" style="--opt-color: #00ff66; --opt-glow: rgba(0, 255, 102, 0.3);" 
+           data-title="FLEECA" 
+           data-desc="Symulacja przełamywania zabezpieczeń skarbca banku Fleeca. Połączenie precyzji i zimnej krwi."
+           data-diff="MEDIUM"
+           data-color="#00ff66"
+           data-glow="rgba(0, 255, 102, 0.4)"
+           data-href="fleeca/index.html"
+           data-svg='<path d="M6 9h12L17 4H7L6 9zm0 0c0 7 2.5 11 6 11s6-4 6-11M12 12v4m-1.5-3c.5-.5 2.5-.5 3 0s-3 1.5-2 2 2.5.5 3 0"/>'>
+        <div class="option-info">
+          <div class="option-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9h12L17 4H7L6 9zm0 0c0 7 2.5 11 6 11s6-4 6-11M12 12v4m-1.5-3c.5-.5 2.5-.5 3 0s-3 1.5-2 2 2.5.5 3 0"/>
+            </svg>
+          </div>
+          <div class="option-name">FLEECA</div>
+        </div>
+        <div class="active-indicator"></div>
+      </div>
+
+<!-- 6. Sklep (Klawiatura czasowa) -->
+<div class="option-card" style="--opt-color: #ff0055; --opt-glow: rgba(255, 0, 85, 0.3);" 
+     data-title="SKLEP" 
+     data-desc="Przełamywanie szyfru klawiatury cyfrowej. Przytrzymaj podświetloną cyfrę i puść idealnie w zielonej strefie paska."
+     data-diff="MEDIUM"
+     data-color="#ff0055"
+     data-glow="rgba(255, 0, 85, 0.4)"
+     data-href="sklep/index.html"
+     data-svg='<path d="M4 7h16M4 12h16M4 17h16M9 4v16M15 4v16"/>'>
+  <div class="option-info">
+    <div class="option-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16M4 12h16M4 17h16M9 4v16M15 4v16"/>
+      </svg>
+    </div>
+    <div class="option-name">SKLEP</div>
+  </div>
+  <div class="active-indicator"></div>
+</div>
+      
+    </div>
+
+  </div>
+
+  <script>
+    // PRZEŁĄCZANIE ORAZ ANIMACJE HUD
+    const options = document.querySelectorAll('.option-card');
+    const showcaseTitle = document.getElementById('showcaseTitle');
+    const showcaseDesc = document.getElementById('showcaseDesc');
+    const diffBadge = document.getElementById('diffBadge');
+    const launchBtn = document.getElementById('launchBtn');
+    const holoSvg = document.getElementById('holoSvg');
+    const root = document.documentElement;
+
+    options.forEach(option => {
+      option.addEventListener('mouseenter', () => activateModule(option));
+      option.addEventListener('click', () => {
+        window.location.href = option.dataset.href;
+      });
+    });
+
+    function activateModule(elem) {
+      if(elem.classList.contains('active')) return;
+
+      options.forEach(o => o.classList.remove('active'));
+      elem.classList.add('active');
+
+      const title = elem.dataset.title;
+      const desc = elem.dataset.desc;
+      const diff = elem.dataset.diff;
+      const color = elem.dataset.color;
+      const glow = elem.dataset.glow;
+      const href = elem.dataset.href;
+      const svgContent = elem.dataset.svg;
+
+      // Efekt Micro-Fadingu
+      showcaseTitle.style.opacity = '0';
+      showcaseDesc.style.opacity = '0';
+
+      setTimeout(() => {
+        showcaseTitle.textContent = title;
+        showcaseDesc.textContent = desc;
+        diffBadge.textContent = diff;
+        launchBtn.href = href;
+        holoSvg.innerHTML = svgContent;
+
+        showcaseTitle.style.opacity = '1';
+        showcaseDesc.style.opacity = '1';
+      }, 150);
+
+      root.style.setProperty('--primary', color);
+      root.style.setProperty('--primary-glow', glow);
+    }
+
+    // INTERAKTYWNE TŁO CANVAS Z LASERAMI I MYSZKĄ
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let mouse = { x: null, y: null };
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.alpha = Math.random() * 0.5 + 0.1;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (mouse.x && mouse.y) {
+          let dx = mouse.x - this.x;
+          let dy = mouse.y - this.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            this.x -= dx * 0.015;
+            this.y -= dy * 0.015;
+          }
+        }
+
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+      }
+      draw() {
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    const particles = Array.from({ length: 60 }, () => new Particle());
+
+    function renderBg() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Siatka cyfrowa
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(renderBg);
+    }
+    renderBg();
+  </script>
+
+</body>
+</html>

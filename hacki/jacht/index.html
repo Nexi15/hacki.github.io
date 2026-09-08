@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYSTEM // YACHT HACK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080a10;
+      --card-bg: #0f121d;
+      --border-pink: #ff0055;
+      --glow-pink: rgba(255, 0, 85, 0.4);
+      --cyan: #00f0ff;
+      --glow-cyan: rgba(0, 240, 255, 0.35);
+      --green: #00ff66;
+      --glow-green: rgba(0, 255, 102, 0.4);
+      --text-main: #f0f4f8;
+      --text-dim: #708298;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Rajdhani', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 30%, rgba(255, 0, 85, 0.08) 0%, transparent 70%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 24px 24px, 24px 24px;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .hack-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-pink);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 460px;
+      padding: 24px;
+      box-shadow: 0 0 35px var(--glow-pink);
+      backdrop-filter: blur(12px);
+      position: relative;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 0, 85, 0.3);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .system-title {
+      font-size: 1.2rem;
+      color: var(--border-pink);
+      letter-spacing: 2px;
+      font-weight: bold;
+    }
+
+    .stage-badge {
+      font-size: 0.85rem;
+      color: var(--cyan);
+      background: rgba(0, 240, 255, 0.1);
+      padding: 4px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    /* ETAP 1: BLOKADA TONU */
+    .tone-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .freq-display {
+      font-size: 2.2rem;
+      color: var(--border-pink);
+      text-shadow: 0 0 12px var(--glow-pink);
+    }
+
+    .slider-box {
+      width: 100%;
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 8px;
+      accent-color: var(--border-pink);
+      cursor: pointer;
+    }
+
+    .tone-stats {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.9rem;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .btn-half {
+      flex: 1;
+    }
+
+    /* ETAP 2: PARY MEMORY */
+    .pairs-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto;
+    }
+
+    .card-tile {
+      background: rgba(255, 0, 85, 0.12);
+      border: 1px solid var(--border-pink);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .card-tile.matched {
+      background: rgba(0, 255, 102, 0.15);
+      border-color: var(--green);
+      color: var(--green);
+      cursor: default;
+    }
+
+    .card-tile.hidden-card {
+      color: transparent;
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ETAP 3: LABIRYNT 17x17 */
+    .maze-grid {
+      display: grid;
+      grid-template-columns: repeat(17, 1fr);
+      grid-template-rows: repeat(17, 1fr);
+      gap: 1px;
+      width: 340px;
+      height: 340px;
+      margin: 0 auto;
+      background: #000;
+      border: 1px solid var(--border-pink);
+      padding: 2px;
+    }
+
+    .maze-cell {
+      background: #000;
+      border-radius: 1px;
+    }
+
+    .maze-cell.visible {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .maze-cell.wall {
+      background: #181d28 !important;
+    }
+
+    .maze-cell.player {
+      background: var(--border-pink) !important;
+      box-shadow: 0 0 10px var(--border-pink);
+      border-radius: 50%;
+    }
+
+    .maze-cell.target {
+      background: var(--green) !important;
+      box-shadow: 0 0 12px var(--green);
+      border-radius: 50%;
+    }
+
+    /* ETAP 4: DO METY */
+    .meta-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .meta-hud {
+      display: flex;
+      justify-content: space-between;
+      width: 320px;
+      margin-bottom: 8px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .meta-canvas-box {
+      width: 320px;
+      height: 360px;
+      border: 1px solid var(--border-pink);
+      background: #000;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* KONTROLI I PRZYCISKI */
+    .controls-hint {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 12px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .btn-action {
+      font-family: 'Share Tech Mono', monospace;
+      background: rgba(255, 0, 85, 0.1);
+      border: 1px solid var(--border-pink);
+      color: var(--border-pink);
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      width: 100%;
+      text-transform: uppercase;
+    }
+
+    .btn-action:hover {
+      background: var(--border-pink);
+      color: #000;
+      box-shadow: 0 0 15px var(--glow-pink);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 10, 16, 0.96);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 50;
+      border-radius: 12px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="hack-card">
+    <div class="header-bar">
+      <span id="titleText" class="system-title">BLOKADA TONU</span>
+      <span id="stageBadge" class="stage-badge">ETAP 1 / 4</span>
+    </div>
+
+    <div id="level1View" class="tone-container">
+      <div id="freqVal" class="freq-display">520 Hz</div>
+      <div class="slider-box">
+        <input type="range" id="freqSlider" min="160" max="880" value="520">
+      </div>
+      <div class="tone-stats">
+        <span>DYSTANS: <b id="distVal">--</b></span>
+        <span>WYMAGANE: <b>70%</b></span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-action btn-half" onclick="playTargetTone()">SPACJA - POWTÓRZ</button>
+        <button class="btn-action btn-half" onclick="submitLevel1()">ENTER - ZABLOKUJ</button>
+      </div>
+      <div class="controls-hint">[SPACJA] POWTÓRZ TON &nbsp;|&nbsp; [ENTER] ZABLOKUJ</div>
+    </div>
+
+    <div id="level2View" class="hidden">
+      <div class="pairs-grid" id="pairsGrid"></div>
+      <div class="controls-hint">ZNALEZIONO PARY: <span id="pairsCount" style="color:var(--cyan)">0/8</span></div>
+    </div>
+
+    <div id="level3View" class="hidden">
+      <div class="maze-grid" id="mazeGrid"></div>
+      <div class="controls-hint">PORUSZANIE SIĘ: [W] [A] [S] [D]</div>
+    </div>
+
+    <div id="level4View" class="hidden meta-container">
+      <div class="meta-hud">
+        <span>WYSOKOŚĆ: <b id="heightVal" style="color:var(--green)">0/1000</b></span>
+        <span>RUCH: <b>[A] / [D]</b></span>
+      </div>
+      <div class="meta-canvas-box">
+        <canvas id="metaCanvas" width="320" height="360"></canvas>
+      </div>
+    </div>
+
+    <div id="resultOverlay" class="overlay hidden">
+      <h2 id="resTitle" style="font-family:'Share Tech Mono'; font-size: 2rem;"></h2>
+      <p id="resSub" style="font-family:'Share Tech Mono'; color:var(--text-dim)"></p>
+      <button class="btn-action" style="width: 200px;" onclick="initYachtHack()">SPRÓBUJ PONOWNIE</button>
+    </div>
+  </div>
+
+  <script>
+    let currentStage = 1;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playToneSound(freq, duration = 0.4) {
+      initAudio();
+      try {
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e){}
+    }
+
+    function initYachtHack() {
+      currentStage = 1;
+      document.getElementById('resultOverlay').classList.add('hidden');
+      startLevel1();
+    }
+
+    /* ================= ETAP 1: BLOKADA TONU ================= */
+    let targetFreq = 500;
+
+    function startLevel1() {
+      currentStage = 1;
+      updateHeader("BLOKADA TONU", "ETAP 1 / 4");
+      showView('level1View');
+      
+      targetFreq = Math.floor(Math.random() * (750 - 250)) + 250;
+      const slider = document.getElementById('freqSlider');
+      slider.value = 520;
+      updateToneUI();
+
+      slider.oninput = updateToneUI;
+    }
+
+    function updateToneUI() {
+      const val = parseInt(document.getElementById('freqSlider').value);
+      document.getElementById('freqVal').innerText = val + " Hz";
+      let diff = Math.abs(val - targetFreq);
+      document.getElementById('distVal').innerText = diff;
+    }
+
+    function playTargetTone() {
+      playToneSound(targetFreq, 0.6);
+    }
+
+    function submitLevel1() {
+      const val = parseInt(document.getElementById('freqSlider').value);
+      let diff = Math.abs(val - targetFreq);
+
+      if (diff <= 40) {
+        playToneSound(880, 0.3);
+        startLevel2();
+      } else {
+        playToneSound(150, 0.5);
+        showResult(false, "NIEPRAWIDŁOWA CZĘSTOTLIWOŚĆ");
+      }
+    }
+
+    /* ================= ETAP 2: PARY (MEMORY) ================= */
+    let pairs = ['A','A','B','B','C','C','D','D','E','E','F','F','G','G','H','H'];
+    let flippedCards = [];
+    let matchedCount = 0;
+
+    function startLevel2() {
+      currentStage = 2;
+      updateHeader("PARY", "ETAP 2 / 4");
+      showView('level2View');
+
+      pairs.sort(() => Math.random() - 0.5);
+      matchedCount = 0;
+      flippedCards = [];
+      document.getElementById('pairsCount').innerText = "0/8";
+
+      const grid = document.getElementById('pairsGrid');
+      grid.innerHTML = '';
+
+      pairs.forEach((char, idx) => {
+        const tile = document.createElement('div');
+        tile.className = 'card-tile hidden-card';
+        tile.innerText = char;
+        tile.onclick = () => flipCard(tile, char);
+        grid.appendChild(tile);
+      });
+    }
+
+    function flipCard(tile, char) {
+      if (flippedCards.length >= 2 || !tile.classList.contains('hidden-card')) return;
+
+      playToneSound(440, 0.1);
+      tile.classList.remove('hidden-card');
+      flippedCards.push({ tile, char });
+
+      if (flippedCards.length === 2) {
+        if (flippedCards[0].char === flippedCards[1].char) {
+          flippedCards[0].tile.classList.add('matched');
+          flippedCards[1].tile.classList.add('matched');
+          matchedCount += 1;
+          document.getElementById('pairsCount').innerText = `${matchedCount}/8`;
+          flippedCards = [];
+
+          if (matchedCount === 8) {
+            setTimeout(startLevel3, 400);
+          }
+        } else {
+          setTimeout(() => {
+            flippedCards[0].tile.classList.add('hidden-card');
+            flippedCards[1].tile.classList.add('hidden-card');
+            flippedCards = [];
+          }, 600);
+        }
+      }
+    }
+
+    /* ================= ETAP 3: LABIRYNT 17x17 ================= */
+    const N = 17;
+    let playerPos = { r: 1, c: 1 };
+    let targetPos = { r: 15, c: 15 };
+
+    function startLevel3() {
+      currentStage = 3;
+      updateHeader("ŚCIEŻKA", "ETAP 3 / 4");
+      showView('level3View');
+
+      playerPos = { r: 1, c: 1 };
+      renderMaze();
+    }
+
+    function renderMaze() {
+      const grid = document.getElementById('mazeGrid');
+      grid.innerHTML = '';
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'maze-cell';
+
+          let dist = Math.abs(r - playerPos.r) + Math.abs(c - playerPos.c);
+          if (dist <= 2) {
+            cell.classList.add('visible');
+          }
+
+          if (r === playerPos.r && c === playerPos.c) {
+            cell.classList.add('player');
+          } else if (r === targetPos.r && c === targetPos.c && dist <= 3) {
+            cell.classList.add('target');
+          }
+
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function movePlayer(dr, dc) {
+      let nr = playerPos.r + dr;
+      let nc = playerPos.c + dc;
+
+      if (nr >= 0 && nr < N && nc >= 0 && nc < N) {
+        playerPos.r = nr;
+        playerPos.c = nc;
+        playToneSound(350, 0.05);
+        renderMaze();
+
+        if (playerPos.r === targetPos.r && playerPos.c === targetPos.c) {
+          setTimeout(startLevel4, 300);
+        }
+      }
+    }
+
+    /* ================= ETAP 4: DO METY ================= */
+    let playerX = 150;
+    let currentHeight = 0;
+    let obstacles = [];
+    let metaAnimId = null;
+    let keysPressed = {};
+
+    function startLevel4() {
+      currentStage = 4;
+      updateHeader("DO METY", "ETAP 4 / 4");
+      showView('level4View');
+
+      playerX = 150;
+      currentHeight = 0;
+      obstacles = [];
+      spawnObstacle();
+
+      if (metaAnimId) cancelAnimationFrame(metaAnimId);
+      loopLevel4();
+    }
+
+    function spawnObstacle() {
+      let gapWidth = 65;
+      let gapX = Math.floor(Math.random() * (320 - gapWidth - 20)) + 10;
+      obstacles.push({ y: -15, gapX: gapX, gapW: gapWidth });
+    }
+
+    function loopLevel4() {
+      if (currentStage !== 4) return;
+
+      if (keysPressed['a'] || keysPressed['A']) playerX = Math.max(0, playerX - 5);
+      if (keysPressed['d'] || keysPressed['D']) playerX = Math.min(300, playerX + 5);
+
+      currentHeight += 2;
+      document.getElementById('heightVal').innerText = `${currentHeight}/1000`;
+
+      const canvas = document.getElementById('metaCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 320, 360);
+
+      // Rysuj gracza
+      ctx.fillStyle = '#ff0055';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#ff0055';
+      ctx.fillRect(playerX, 320, 20, 20);
+
+      // Losowanie nowej przeszkody
+      if (Math.random() < 0.025 && (obstacles.length === 0 || obstacles[obstacles.length - 1].y > 80)) {
+        spawnObstacle();
+      }
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#00f0ff';
+
+      for (let i = 0; i < obstacles.length; i++) {
+        let obs = obstacles[i];
+        obs.y += 3;
+
+        // Lewa ściana
+        ctx.fillRect(0, obs.y, obs.gapX, 8);
+        // Prawa ściana
+        ctx.fillRect(obs.gapX + obs.gapW, obs.y, 320 - (obs.gapX + obs.gapW), 8);
+
+        // Sprawdzanie kolizji
+        if (obs.y >= 312 && obs.y <= 340) {
+          if (playerX < obs.gapX || playerX + 20 > obs.gapX + obs.gapW) {
+            playToneSound(120, 0.4);
+            showResult(false, "ZDERZENIE Z PRZESZKODĄ!");
+            return;
+          }
+        }
+      }
+
+      obstacles = obstacles.filter(o => o.y < 370);
+
+      if (currentHeight >= 1000) {
+        playToneSound(600, 0.5);
+        showResult(true, "JACHT ZAHAKOWANY POMYŚLNIE!");
+        return;
+      }
+
+      metaAnimId = requestAnimationFrame(loopLevel4);
+    }
+
+    /* OBSŁUGA KLAWIATURY */
+    window.addEventListener('keydown', (e) => {
+      initAudio();
+      keysPressed[e.key] = true;
+
+      if (currentStage === 1) {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          playTargetTone();
+        } else if (e.code === 'Enter') {
+          e.preventDefault();
+          submitLevel1();
+        }
+      } else if (currentStage === 3) {
+        if (['w','W','s','S','a','A','d','D'].includes(e.key)) {
+          e.preventDefault();
+          if (e.key === 'w' || e.key === 'W') movePlayer(-1, 0);
+          if (e.key === 's' || e.key === 'S') movePlayer(1, 0);
+          if (e.key === 'a' || e.key === 'A') movePlayer(0, -1);
+          if (e.key === 'd' || e.key === 'D') movePlayer(0, 1);
+        }
+      } else if (currentStage === 4) {
+        if (['a','A','d','D'].includes(e.key)) {
+          e.preventDefault();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keysPressed[e.key] = false;
+    });
+
+    /* FUNKCJE POMOCNICZE */
+    function updateHeader(title, stage) {
+      document.getElementById('titleText').innerText = title;
+      document.getElementById('stageBadge').innerText = stage;
+    }
+
+    function showView(viewId) {
+      ['level1View', 'level2View', 'level3View', 'level4View'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    function showResult(win, msg) {
+      currentStage = 0;
+      if (metaAnimId) cancelAnimationFrame(metaAnimId);
+      const overlay = document.getElementById('resultOverlay');
+      const title = document.getElementById('resTitle');
+      overlay.classList.remove('hidden');
+
+      title.innerText = win ? "SUKCES" : "PORAŻKA";
+      title.style.color = win ? "var(--green)" : "var(--border-pink)";
+      document.getElementById('resSub').innerText = msg;
+    }
+
+    // Inicjalizacja gry
+    initYachtHack();
+  </script>
+</body>
+</html>

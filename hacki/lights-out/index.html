@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lights Out</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #0b0d0e;
+      background-image: radial-gradient(#1f2428 1px, transparent 1px);
+      background-size: 16px 16px;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+    }
+
+    /* Przełącznik trybów */
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 188, 212, 0.4);
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover, .btn.active {
+      background: #00bcd4;
+      color: #0b0d0e;
+      box-shadow: 0 0 15px #00bcd4;
+    }
+
+    /* Plansza gry */
+    .board {
+      display: grid;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Pojedyncze kafelki */
+    .cell {
+      width: 45px;
+      height: 45px;
+      background-color: #1a1d20;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, box-shadow 0.15s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Stan zapalony (Light On) */
+    .cell.is-on {
+      background-color: #00bcd4;
+      box-shadow: 0 0 12px #00bcd4, inset 0 0 5px #ffffff;
+      border-color: #00bcd4;
+    }
+
+    /* Przycisk powrotu do menu */
+    .back-btn {
+      margin-top: 30px;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .back-btn:hover {
+      background: #fff;
+      color: #000;
+      box-shadow: 0 0 10px #fff;
+    }
+
+    /* Informacja o wygranej */
+    .win-message {
+      margin-top: 15px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #00bcd4;
+      height: 30px;
+      text-shadow: 0 0 10px #00bcd4;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Lights Out</h1>
+    <p>Zgaś wszystkie światła, aby wygrać!</p>
+  </div>
+
+  <div class="controls">
+    <button class="btn active" id="mode-7" onclick="setMode(7)">Tryb 7x7</button>
+    <button class="btn" id="mode-9" onclick="setMode(9)">Tryb 9x9</button>
+    <button class="btn" onclick="resetBoard()">Restart</button>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="win-message" id="win-message"></div>
+
+  <a href="../index.html" class="btn back-btn">⬅ Powrót do menu</a>
+
+  <script>
+    let gridSize = 7;
+    let boardState = [];
+
+    function setMode(size) {
+      gridSize = size;
+      
+      // Aktualizacja przycisków
+      document.getElementById('mode-7').classList.toggle('active', size === 7);
+      document.getElementById('mode-9').classList.toggle('active', size === 9);
+      
+      // Dostosowanie wielkości kafelków dla siatki 9x9, żeby mieściły się na ekranie
+      const cells = document.querySelectorAll('.cell');
+      
+      resetBoard();
+    }
+
+    function createBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+      boardState = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false));
+
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          
+          // Zmniejsz rozmiar kafelków w trybie 9x9
+          if (gridSize === 9) {
+            cell.style.width = '35px';
+            cell.style.height = '35px';
+          }
+
+          cell.addEventListener('click', () => makeMove(r, c));
+          board.appendChild(cell);
+        }
+      }
+    }
+
+    function toggleCell(r, c) {
+      if (r >= 0 && r < gridSize && c >= 0 && c < gridSize) {
+        boardState[r][c] = !boardState[r][c];
+        const cell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+        if (cell) {
+          cell.classList.toggle('is-on', boardState[r][c]);
+        }
+      }
+    }
+
+    function makeMove(r, c) {
+      // Przełącz kliknięty kafelek oraz jego 4 sąsiadów
+      toggleCell(r, c);
+      toggleCell(r - 1, c);
+      toggleCell(r + 1, c);
+      toggleCell(r, c - 1);
+      toggleCell(r, c + 1);
+
+      checkWin();
+    }
+
+    function resetBoard() {
+      document.getElementById('win-message').innerText = '';
+      createBoard();
+
+      // Symulujemy kilkanaście losowych kliknięć, żeby układ był zawsze możliwy do rozwiązania
+      const randomMoves = gridSize * 3;
+      for (let i = 0; i < randomMoves; i++) {
+        const randR = Math.floor(Math.random() * gridSize);
+        const randC = Math.floor(Math.random() * gridSize);
+        toggleCell(randR, randC);
+        toggleCell(randR - 1, randC);
+        toggleCell(randR + 1, randC);
+        toggleCell(randR, randC - 1);
+        toggleCell(randR, randC + 1);
+      }
+    }
+
+    function checkWin() {
+      const hasOn = boardState.some(row => row.some(cell => cell === true));
+      if (!hasOn) {
+        document.getElementById('win-message').innerText = '🎉 Gratulacje! Wygrałeś!';
+      }
+    }
+
+    // Start gry przy załadowaniu
+    resetBoard();
+  </script>
+</body>
+</html>

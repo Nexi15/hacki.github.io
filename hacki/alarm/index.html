@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alarm - Rozbrajanie Kodów</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #0b0d0e;
+      background-image: radial-gradient(#1f2428 1px, transparent 1px);
+      background-size: 16px 16px;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #d4cf00;
+      text-shadow: 0 0 15px rgba(212, 207, 0, 0.4);
+    }
+
+    /* Licznik czasu */
+    .timer-container {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #ff3333;
+      margin-bottom: 15px;
+      text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+    }
+
+    /* Kontener na próby z przewijaniem (dla nieskończonych prób) */
+    .attempts-wrapper {
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 5px;
+      margin-bottom: 15px;
+    }
+
+    /* Pasek przewijania */
+    .attempts-wrapper::-webkit-scrollbar {
+      width: 6px;
+    }
+    .attempts-wrapper::-webkit-scrollbar-thumb {
+      background: #d4cf00;
+      border-radius: 3px;
+    }
+
+    .attempts-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tile {
+      width: 50px;
+      height: 50px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+
+    /* Kolory statusów cyfr */
+    .tile.correct {
+      background-color: #2e7d32; /* Zielony - dobre miejsce */
+      border-color: #4caf50;
+      box-shadow: 0 0 10px #4caf50;
+    }
+
+    .tile.present {
+      background-color: #f57f17; /* Żółty - złe miejsce */
+      border-color: #fbc02d;
+      box-shadow: 0 0 10px #fbc02d;
+    }
+
+    .tile.absent {
+      background-color: #c62828; /* Czerwony - brak cyfry */
+      border-color: #ef5350;
+      box-shadow: 0 0 10px #ef5350;
+    }
+
+    /* Pole wprowadzania kodu */
+    .input-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    input {
+      width: 140px;
+      padding: 10px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 5px;
+      background: #1f2428;
+      border: 2px solid #d4cf00;
+      border-radius: 4px;
+      color: #fff;
+      outline: none;
+      box-shadow: 0 0 10px rgba(212, 207, 0, 0.2);
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #d4cf00;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #d4cf00;
+      color: #0b0d0e;
+      box-shadow: 0 0 15px #d4cf00;
+    }
+
+    /* Komunikaty wygranej / przegranej */
+    .message {
+      font-size: 1.2rem;
+      font-weight: 700;
+      height: 30px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .back-btn {
+      border-color: rgba(255, 255, 255, 0.2);
+      margin-top: 10px;
+    }
+
+    .back-btn:hover {
+      background: #fff;
+      color: #000;
+      box-shadow: 0 0 10px #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>ALARM</h1>
+    <p>Złam 4-cyfrowy kod (cyfry 1-9, bez powtórzeń)!</p>
+  </div>
+
+  <div class="timer-container">
+    Czas: <span id="timer">25</span>s
+  </div>
+
+  <div class="attempts-wrapper" id="wrapper">
+    <div class="attempts-grid" id="grid"></div>
+  </div>
+
+  <div class="input-section">
+    <input type="text" id="code-input" maxlength="4" placeholder="1234" autofocus autocomplete="off">
+    <button class="btn" onclick="submitGuess()">SPRAWDŹ</button>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <div>
+    <button class="btn" onclick="initGame()">RESET</button>
+    <a href="../index.html" class="btn back-btn">⬅ Powrót do menu</a>
+  </div>
+
+  <script>
+    let secretCode = [];
+    let timeLeft = 25;
+    let timerInterval = null;
+    let gameOver = false;
+    let audioCtx = null;
+    let alarmInterval = null;
+
+    // Dźwięk syreny przy przegranej
+    function playAlarmSound() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      function beep() {
+        if (!gameOver) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.3);
+        
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      }
+
+      beep();
+      alarmInterval = setInterval(beep, 500);
+    }
+
+    function stopAlarmSound() {
+      if (alarmInterval) {
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+      }
+    }
+
+    // Losowanie 4 unikalnych cyfr od 1 do 9
+    function generateSecretCode() {
+      const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      digits.sort(() => Math.random() - 0.5);
+      return digits.slice(0, 4);
+    }
+
+    // Inicjalizacja gry
+    function initGame() {
+      stopAlarmSound();
+      gameOver = false;
+      timeLeft = 25;
+      secretCode = generateSecretCode();
+      
+      document.getElementById('timer').innerText = timeLeft;
+      document.getElementById('message').innerText = '';
+      document.getElementById('message').style.color = '#fff';
+      document.getElementById('code-input').disabled = false;
+      document.getElementById('code-input').value = '';
+      document.getElementById('code-input').focus();
+      document.getElementById('grid').innerHTML = '';
+
+      // Reset i odliczanie zegara
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = timeLeft;
+        
+        if (timeLeft <= 0) {
+          endGame(false, `⏰ CZAS MINĄŁ! KOD TO: ${secretCode.join('')}`);
+        }
+      }, 1000);
+    }
+
+    // Sprawdzanie wpisanego kodu
+    function submitGuess() {
+      if (gameOver) return;
+
+      const input = document.getElementById('code-input');
+      const guess = input.value.trim();
+
+      // Walidacja pola wprowadzania
+      if (guess.length !== 4 || isNaN(guess) || guess.includes('0')) {
+        alert("Wpisz dokładnie 4 cyfry z zakresu 1-9!");
+        return;
+      }
+
+      const uniqueDigits = new Set(guess.split(''));
+      if (uniqueDigits.size !== 4) {
+        alert("Cyfry nie mogą się powtarzać!");
+        return;
+      }
+
+      // Dynamiczne tworzenie wiersza dla nowej próby
+      const grid = document.getElementById('grid');
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const guessArray = guess.split('');
+      guessArray.forEach((char, i) => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.innerText = char;
+
+        if (char === secretCode[i]) {
+          tile.classList.add('correct'); // Zielony
+        } else if (secretCode.includes(char)) {
+          tile.classList.add('present'); // Żółty
+        } else {
+          tile.classList.add('absent');  // Czerwony
+        }
+        row.appendChild(tile);
+      });
+
+      grid.appendChild(row);
+
+      // Automatyczne przewijanie na dół do najnowszej próby
+      const wrapper = document.getElementById('wrapper');
+      wrapper.scrollTop = wrapper.scrollHeight;
+
+      // Wygrana
+      if (guess === secretCode.join('')) {
+        endGame(true, "🎉 ALARM ROZBROJONY! BRAWO!");
+        return;
+      }
+
+      input.value = '';
+      input.focus();
+    }
+
+    // Enter do wysyłania odpowiedzi
+    document.getElementById('code-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        submitGuess();
+      }
+    });
+
+    // Koniec gry
+    function endGame(win, msg) {
+      gameOver = true;
+      clearInterval(timerInterval);
+      document.getElementById('code-input').disabled = true;
+      
+      const msgDiv = document.getElementById('message');
+      msgDiv.innerText = msg;
+
+      if (win) {
+        msgDiv.style.color = '#4caf50';
+      } else {
+        msgDiv.style.color = '#ff3333';
+        playAlarmSound(); // Włącza dźwięk syreny przy braku czasu
+      }
+    }
+
+    // Start gry przy wejściu
+    initGame();
+  </script>
+</body>
+</html>

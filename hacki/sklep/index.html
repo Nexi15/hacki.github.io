@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYSTEM // STORE HACK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090c10;
+      --card-bg: rgba(13, 19, 29, 0.95);
+      --border-cyan: #00f0ff;
+      --glow-cyan: rgba(0, 240, 255, 0.35);
+      --accent-pink: #ff0055;
+      --glow-pink: rgba(255, 0, 85, 0.4);
+      --success-green: #00ff66;
+      --glow-green: rgba(0, 255, 102, 0.4);
+      --key-bg: #141a26;
+      --text-main: #f0f4f8;
+      --text-dim: #60738a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Rajdhani', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 30%, rgba(0, 240, 255, 0.08) 0%, transparent 70%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 24px 24px, 24px 24px;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* KARTA GŁÓWNA */
+    .hack-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-cyan);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 440px;
+      padding: 24px;
+      box-shadow: 0 0 35px var(--glow-cyan), inset 0 0 15px rgba(0, 240, 255, 0.05);
+      backdrop-filter: blur(12px);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .system-title {
+      font-size: 1.1rem;
+      color: var(--border-cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .stage-badge {
+      font-size: 0.8rem;
+      color: var(--success-green);
+      background: rgba(0, 255, 102, 0.1);
+      padding: 4px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 255, 102, 0.3);
+      letter-spacing: 1px;
+    }
+
+    /* GLOBALNY PASEK CZASU */
+    .global-timer {
+      width: 100%;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .global-timer-bar {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--border-cyan), var(--success-green));
+      box-shadow: 0 0 10px var(--border-cyan);
+      transition: width 0.1s linear;
+    }
+
+    /* ================= POZIOM 1: PUZZLE 4x4 ================= */
+    .puzzle-instructions {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .slider-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .tile {
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid var(--border-cyan);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--border-cyan);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tile:hover {
+      background: rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 12px var(--glow-cyan);
+    }
+
+    .tile.empty {
+      background: transparent;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      cursor: default;
+    }
+
+    /* ================= POZIOM 2: TIMING KEYPAD ================= */
+    .code-display {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .code-slot {
+      width: 44px;
+      height: 50px;
+      border-radius: 6px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--text-dim);
+      transition: all 0.25s ease;
+    }
+
+    .code-slot.active {
+      border-color: var(--accent-pink);
+      color: var(--accent-pink);
+      box-shadow: 0 0 12px var(--glow-pink);
+    }
+
+    .code-slot.done {
+      border-color: var(--success-green);
+      color: var(--success-green);
+      box-shadow: 0 0 12px var(--glow-green);
+    }
+
+    .code-slot.dot::after {
+      content: '•';
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px 10px;
+    }
+
+    .key-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .key {
+      width: 100%;
+      height: 52px;
+      background: var(--key-bg);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .key.target {
+      border-color: var(--accent-pink);
+      color: var(--accent-pink);
+      box-shadow: 0 0 15px var(--glow-pink);
+      background: rgba(255, 0, 85, 0.08);
+    }
+
+    .timing-bar-container {
+      width: 75%;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      position: relative;
+      overflow: hidden;
+      visibility: hidden;
+    }
+
+    .timing-bar-container.visible {
+      visibility: visible;
+    }
+
+    .timing-zone {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: var(--success-green);
+      box-shadow: 0 0 8px var(--success-green);
+      z-index: 1;
+    }
+
+    .timing-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--accent-pink);
+      z-index: 2;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      padding-top: 12px;
+      margin-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: 'Share Tech Mono', monospace;
+      text-transform: uppercase;
+    }
+
+    .stat-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--border-cyan);
+    }
+
+    /* PRZYCISKI & REZULTAT */
+    .action-bar {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-reset {
+      font-family: 'Share Tech Mono', monospace;
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid var(--border-cyan);
+      color: var(--border-cyan);
+      padding: 10px 24px;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset:hover {
+      background: var(--border-cyan);
+      color: #000;
+      box-shadow: 0 0 15px var(--glow-cyan);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 12, 16, 0.96);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 20;
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+    }
+
+    .overlay-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .overlay-sub {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="hack-card">
+    <div class="header-bar">
+      <span class="system-title">SYSTEM STORE HACK</span>
+      <span id="stageBadge" class="stage-badge">ETAP 1 / 2</span>
+    </div>
+
+    <div class="global-timer">
+      <div class="global-timer-bar" id="globalBar"></div>
+    </div>
+
+    <div id="level1View">
+      <div class="puzzle-instructions">Uporządkuj numery od 1 do 15</div>
+      <div class="slider-grid" id="grid1"></div>
+    </div>
+
+    <div id="level2View" class="hidden">
+      <div class="code-display" id="codeDisplay"></div>
+      <div class="keypad" id="keypad"></div>
+      <div class="stats">
+        <div class="stat-box">
+          <span class="stat-label">Runda</span>
+          <span class="stat-val" id="roundVal">1/4</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Postęp</span>
+          <span class="stat-val" id="progressVal">0/4</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Próby</span>
+          <span class="stat-val" id="attemptsVal">0/3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-reset" onclick="initGame()">RESTART HACK</button>
+    </div>
+
+    <div id="resultOverlay" class="overlay hidden">
+      <div id="resTitle" class="overlay-title"></div>
+      <div id="resSub" class="overlay-sub"></div>
+      <button class="btn-reset" onclick="initGame()">SPRÓBUJ PONOWNIE</button>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      timeLvl1: 90000,    // 90s na układankę 4x4
+      totalRoundsLvl2: 4, // 4 rundy klawiatury
+      codeLengthLvl2: 4,  // 4 cyfry w kodzie
+      maxFailuresLvl2: 3, // max 3 błędy
+      timeLvl2: 30000     // 30s na klawiaturę
+    };
+
+    let globalState = {
+      currentLevel: 1,
+      timeLeft: 0,
+      timerInterval: null
+    };
+
+    /* --- LEVEL 1: PUZZLE 4x4 --- */
+    let board1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+
+    function startLevel1() {
+      globalState.currentLevel = 1;
+      document.getElementById('stageBadge').innerText = "ETAP 1 / 2";
+      document.getElementById('level1View').classList.remove('hidden');
+      document.getElementById('level2View').classList.add('hidden');
+      document.getElementById('resultOverlay').classList.add('hidden');
+
+      shuffleBoard1();
+      renderBoard1();
+      startGlobalTimer(CONFIG.timeLvl1, () => showResult(false, "CZAS UPŁYNĄŁ W ETAPIE 1"));
+    }
+
+    function shuffleBoard1() {
+      board1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+      for (let i = 0; i < 100; i++) {
+        let emptyIdx = board1.indexOf(0);
+        let validMoves = getValidMoves1(emptyIdx);
+        let randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+        board1[emptyIdx] = board1[randomMove];
+        board1[randomMove] = 0;
+      }
+    }
+
+    function getValidMoves1(emptyIdx) {
+      let moves = [];
+      let row = Math.floor(emptyIdx / 4);
+      let col = emptyIdx % 4;
+
+      if (row > 0) moves.push(emptyIdx - 4);
+      if (row < 3) moves.push(emptyIdx + 4);
+      if (col > 0) moves.push(emptyIdx - 1);
+      if (col < 3) moves.push(emptyIdx + 1);
+
+      return moves;
+    }
+
+    function renderBoard1() {
+      const grid = document.getElementById('grid1');
+      grid.innerHTML = '';
+      board1.forEach((val, idx) => {
+        const tile = document.createElement('div');
+        tile.className = 'tile' + (val === 0 ? ' empty' : '');
+        tile.innerText = val !== 0 ? val : '';
+        tile.addEventListener('click', () => moveTile1(idx));
+        grid.appendChild(tile);
+      });
+    }
+
+    function moveTile1(idx) {
+      if (globalState.currentLevel !== 1) return;
+      let emptyIdx = board1.indexOf(0);
+      let validMoves = getValidMoves1(emptyIdx);
+
+      if (validMoves.includes(idx)) {
+        board1[emptyIdx] = board1[idx];
+        board1[idx] = 0;
+        renderBoard1();
+
+        if (checkWin1()) {
+          clearInterval(globalState.timerInterval);
+          setTimeout(startLevel2, 300);
+        }
+      }
+    }
+
+    function checkWin1() {
+      const winPattern = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+      return board1.every((val, i) => val === winPattern[i]);
+    }
+
+    /* --- LEVEL 2: TIMING KEYPAD --- */
+    let stateLvl2 = {
+      round: 1,
+      failures: 0,
+      code: [],
+      currentIndex: 0,
+      holding: false,
+      holdProgress: 0,
+      holdInterval: null,
+      targetZone: { min: 45, max: 65 }
+    };
+
+    function startLevel2() {
+      globalState.currentLevel = 2;
+      document.getElementById('stageBadge').innerText = "ETAP 2 / 2";
+      document.getElementById('level1View').classList.add('hidden');
+      document.getElementById('level2View').classList.remove('hidden');
+
+      stateLvl2.round = 1;
+      stateLvl2.failures = 0;
+
+      startRoundLvl2();
+      startGlobalTimer(CONFIG.timeLvl2, () => showResult(false, "CZAS UPŁYNĄŁ W ETAPIE 2"));
+    }
+
+    function startRoundLvl2() {
+      stateLvl2.code = Array.from({ length: CONFIG.codeLengthLvl2 }, () => Math.floor(Math.random() * 9) + 1);
+      stateLvl2.currentIndex = 0;
+
+      generateNewZoneLvl2();
+      updateUILvl2();
+      renderKeypadLvl2();
+    }
+
+    function generateNewZoneLvl2() {
+      const min = Math.floor(Math.random() * 30) + 35;
+      stateLvl2.targetZone = { min: min, max: min + 20 };
+    }
+
+    function renderKeypadLvl2() {
+      const keypad = document.getElementById('keypad');
+      const codeDisplay = document.getElementById('codeDisplay');
+      keypad.innerHTML = '';
+      codeDisplay.innerHTML = '';
+
+      stateLvl2.code.forEach((num, idx) => {
+        const slot = document.createElement('div');
+        slot.className = 'code-slot';
+        if (idx < stateLvl2.currentIndex) {
+          slot.classList.add('done');
+          slot.textContent = num;
+        } else if (idx === stateLvl2.currentIndex) {
+          slot.classList.add('active', 'dot');
+        } else {
+          slot.classList.add('dot');
+        }
+        codeDisplay.appendChild(slot);
+      });
+
+      for (let i = 1; i <= 9; i++) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'key-wrapper';
+
+        const btn = document.createElement('div');
+        btn.className = 'key';
+        btn.textContent = i;
+        btn.id = `key-${i}`;
+
+        const isTargetKey = (i === stateLvl2.code[stateLvl2.currentIndex]);
+
+        if (isTargetKey) {
+          btn.classList.add('target');
+        }
+
+        const timingBar = document.createElement('div');
+        timingBar.className = 'timing-bar-container';
+        if (isTargetKey) {
+          timingBar.classList.add('visible');
+        }
+
+        const zone = document.createElement('div');
+        zone.className = 'timing-zone';
+        zone.style.left = `${stateLvl2.targetZone.min}%`;
+        zone.style.width = `${stateLvl2.targetZone.max - stateLvl2.targetZone.min}%`;
+
+        const progress = document.createElement('div');
+        progress.className = 'timing-progress';
+        progress.id = `progress-${i}`;
+
+        timingBar.appendChild(zone);
+        timingBar.appendChild(progress);
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(timingBar);
+        keypad.appendChild(wrapper);
+
+        btn.addEventListener('mousedown', () => startHold(i));
+        btn.addEventListener('mouseup', () => stopHold(i));
+        btn.addEventListener('mouseleave', () => { if (stateLvl2.holding) stopHold(i); });
+
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(i); });
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); stopHold(i); });
+      }
+    }
+
+    function startHold(num) {
+      if (globalState.currentLevel !== 2) return;
+      if (num !== stateLvl2.code[stateLvl2.currentIndex] || stateLvl2.holding) return;
+
+      stateLvl2.holding = true;
+      stateLvl2.holdProgress = 0;
+
+      const progress = document.getElementById(`progress-${num}`);
+
+      stateLvl2.holdInterval = setInterval(() => {
+        stateLvl2.holdProgress += 2;
+        if (progress) progress.style.width = `${stateLvl2.holdProgress}%`;
+
+        if (stateLvl2.holdProgress >= 100) {
+          stopHold(num);
+        }
+      }, 15);
+    }
+
+    function stopHold(num) {
+      if (globalState.currentLevel !== 2) return;
+      if (!stateLvl2.holding || num !== stateLvl2.code[stateLvl2.currentIndex]) return;
+
+      clearInterval(stateLvl2.holdInterval);
+      stateLvl2.holding = false;
+
+      if (stateLvl2.holdProgress >= stateLvl2.targetZone.min && stateLvl2.holdProgress <= stateLvl2.targetZone.max) {
+        stateLvl2.currentIndex++;
+        if (stateLvl2.currentIndex >= CONFIG.codeLengthLvl2) {
+          if (stateLvl2.round >= CONFIG.totalRoundsLvl2) {
+            clearInterval(globalState.timerInterval);
+            showResult(true, "SKLEP ZAHAKOWANY POMYŚLNIE!");
+          } else {
+            stateLvl2.round++;
+            startRoundLvl2();
+          }
+        } else {
+          generateNewZoneLvl2();
+          renderKeypadLvl2();
+          updateUILvl2();
+        }
+      } else {
+        failAttemptLvl2();
+      }
+    }
+
+    function failAttemptLvl2() {
+      stateLvl2.failures++;
+      updateUILvl2();
+
+      if (stateLvl2.failures >= CONFIG.maxFailuresLvl2) {
+        clearInterval(globalState.timerInterval);
+        showResult(false, "PRZEKROCZONO LIMIT BŁĘDÓW!");
+      } else {
+        startRoundLvl2();
+      }
+    }
+
+    function updateUILvl2() {
+      document.getElementById('roundVal').textContent = `${stateLvl2.round}/${CONFIG.totalRoundsLvl2}`;
+      document.getElementById('progressVal').textContent = `${stateLvl2.currentIndex}/${CONFIG.codeLengthLvl2}`;
+      document.getElementById('attemptsVal').textContent = `${stateLvl2.failures}/${CONFIG.maxFailuresLvl2}`;
+    }
+
+    /* --- TIMER & GAME OVER --- */
+    function startGlobalTimer(duration, onTimeout) {
+      clearInterval(globalState.timerInterval);
+      globalState.timeLeft = duration;
+
+      globalState.timerInterval = setInterval(() => {
+        globalState.timeLeft -= 100;
+        const pct = (globalState.timeLeft / duration) * 100;
+        document.getElementById('globalBar').style.width = `${Math.max(0, pct)}%`;
+
+        if (globalState.timeLeft <= 0) {
+          clearInterval(globalState.timerInterval);
+          onTimeout();
+        }
+      }, 100);
+    }
+
+    function showResult(win, msg) {
+      clearInterval(globalState.timerInterval);
+      const overlay = document.getElementById('resultOverlay');
+      const title = document.getElementById('resTitle');
+      overlay.classList.remove('hidden');
+
+      title.innerText = win ? "SUKCES" : "PORAŻKA";
+      title.style.color = win ? "var(--success-green)" : "var(--accent-pink)";
+      title.style.textShadow = win ? "0 0 15px var(--glow-green)" : "0 0 15px var(--glow-pink)";
+      document.getElementById('resSub').innerText = msg;
+    }
+
+    function initGame() {
+      startLevel1();
+    }
+
+    /* OBSŁUGA KLAWIATURY FIZYCZNEJ */
+    window.addEventListener('keydown', (e) => {
+      if (globalState.currentLevel !== 2) return;
+      const keyNum = parseInt(e.key);
+      if (keyNum >= 1 && keyNum <= 9) {
+        startHold(keyNum);
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (globalState.currentLevel !== 2) return;
+      const keyNum = parseInt(e.key);
+      if (keyNum >= 1 && keyNum <= 9) {
+        stopHold(keyNum);
+      }
+    });
+
+    // Start gry przy załadowaniu strony
+    initGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+/* Reset i podwaliny */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #0b0d0e;
+  /* Kropkowane tło CSS (Dot Pattern) */
+  background-image: radial-gradient(#1f2428 1px, transparent 1px);
+  background-size: 16px 16px;
+  color: #fff;
+  min-height: 100vh;
+}
+
+/* Układ siatki (Automatyczne dopasowanie kolumn) */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Pojedyncza karta */
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px 40px 20px;
+  position: relative;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  min-height: 350px;
+  z-index: 1;
+
+  /* Płynne przechodzenie animacji */
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              background-color 0.4s ease,
+              box-shadow 0.4s ease,
+              border 0.4s ease,
+              z-index 0.4s ease;
+}
+
+.card:last-child {
+  border-right: none;
+}
+
+/* Efekt najechania na kartę */
+.card:hover {
+  z-index: 10;
+  transform: translateY(-8px) scale(1.02);
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(11, 13, 14, 0.8) 100%);
+}
+
+/* Tytuły kart */
+.card-title {
+  margin-top: auto;
+  margin-bottom: auto;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+}
+
+.card:hover .card-title {
+  transform: scale(1.1);
+}
+
+/* Stopka karty (Linia + Przycisk) */
+.card-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 180px;
+  gap: 15px;
+}
+
+.line {
+  height: 2px;
+  width: 100%;
+  border-radius: 2px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, width 0.3s ease;
+}
+
+.card:hover .line {
+  width: 115%; /* Linia wydłuża się po najechaniu */
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* ========================================================= */
+/* --- WARIANTY KOLORYSTYCZNE & EXTREME NEON GLOW --- */
+/* ========================================================= */
+
+/* 1. Cyan (Lights Out) */
+.card-cyan .card-title { color: #00bcd4; }
+.card-cyan .line { 
+  background-color: #00bcd4;
+  box-shadow: 0 0 10px #00bcd4;
+}
+.card-cyan:hover {
+  border: 1px solid rgba(0, 188, 212, 0.6);
+  box-shadow: 0 0 20px rgba(0, 188, 212, 0.5),
+              0 0 50px rgba(0, 188, 212, 0.3),
+              inset 0 0 15px rgba(0, 188, 212, 0.2);
+}
+.card-cyan:hover .card-title {
+  color: #00bcd4;
+  text-shadow: 0 0 10px #00bcd4, 0 0 20px #00bcd4;
+}
+.card-cyan .btn { border-color: rgba(0, 188, 212, 0.4); }
+.card-cyan:hover .btn {
+  background-color: #00bcd4;
+  color: #0b0d0e;
+  box-shadow: 0 0 20px #00bcd4;
+}
+
+/* 2. Yellow (Alarm) */
+.card-yellow .card-title { color: #d4cf00; }
+.card-yellow .line { 
+  background-color: #d4cf00; 
+  box-shadow: 0 0 10px #d4cf00;
+}
+.card-yellow:hover {
+  border: 1px solid rgba(212, 207, 0, 0.6);
+  box-shadow: 0 0 20px rgba(212, 207, 0, 0.5),
+              0 0 50px rgba(212, 207, 0, 0.3),
+              inset 0 0 15px rgba(212, 207, 0, 0.2);
+}
+.card-yellow:hover .card-title {
+  color: #d4cf00;
+  text-shadow: 0 0 10px #d4cf00, 0 0 20px #d4cf00;
+}
+.card-yellow .btn { border-color: rgba(212, 207, 0, 0.4); }
+.card-yellow:hover .btn {
+  background-color: #d4cf00;
+  color: #0b0d0e;
+  box-shadow: 0 0 20px #d4cf00;
+}
+
+/* 3. Pink (Ammunation) */
+.card-pink .card-title { color: #ff007f; }
+.card-pink .line { 
+  background-color: #ff007f; 
+  box-shadow: 0 0 10px #ff007f;
+}
+.card-pink:hover {
+  border: 1px solid rgba(255, 0, 127, 0.6);
+  box-shadow: 0 0 20px rgba(255, 0, 127, 0.5),
+              0 0 50px rgba(255, 0, 127, 0.3),
+              inset 0 0 15px rgba(255, 0, 127, 0.2);
+}
+.card-pink:hover .card-title {
+  text-shadow: 0 0 10px #ff007f, 0 0 25px #ff007f;
+}
+.card-pink .btn { border-color: rgba(255, 0, 127, 0.4); }
+.card-pink:hover .btn {
+  background-color: #ff007f;
+  color: #0b0d0e;
+  box-shadow: 0 0 20px #ff007f;
+}
+
+/* 4. Red (Jacht) */
+.card-red .card-title { color: #ff3366; }
+.card-red .line { 
+  background-color: #ff3366; 
+  box-shadow: 0 0 10px #ff3366;
+}
+.card-red:hover {
+  border: 1px solid rgba(255, 51, 102, 0.6);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.5),
+              0 0 50px rgba(255, 51, 102, 0.3),
+              inset 0 0 15px rgba(255, 51, 102, 0.2);
+}
+.card-red:hover .card-title {
+  text-shadow: 0 0 10px #ff3366, 0 0 25px #ff3366;
+}
+.card-red .btn { border-color: rgba(255, 51, 102, 0.4); }
+.card-red:hover .btn {
+  background-color: #ff3366;
+  color: #0b0d0e;
+  box-shadow: 0 0 20px #ff3366;
+}
+
+/* 5. Green (Fleeca) */
+.card-green .card-title { color: #00e640; }
+.card-green .line { 
+  background-color: #00e640; 
+  box-shadow: 0 0 10px #00e640;
+}
+.card-green:hover {
+  border: 1px solid rgba(0, 230, 64, 0.6);
+  box-shadow: 0 0 20px rgba(0, 230, 64, 0.5),
+              0 0 50px rgba(0, 230, 64, 0.3),
+              inset 0 0 15px rgba(0, 230, 64, 0.2);
+}
+.card-green:hover .card-title {
+  text-shadow: 0 0 10px #00e640, 0 0 25px #00e640;
+}
+.card-green .btn { border-color: rgba(0, 230, 64, 0.4); }
+.card-green:hover .btn {
+  background-color: #00e640;
+  color: #0b0d0e;
+  box-shadow: 0 0 20px #00e640;
+}
+
+/* Responsywność dla ekranów mobilnych */
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .card {
+    height: 250px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
