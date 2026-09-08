@@ -6,19 +6,39 @@
     <title>Organizacje | The Lost MC</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="top-bar">
-        <a href="../index.html" class="back-btn">⬅ POWRÓT DO MENU</a>
-        <button class="add-btn" onclick="addOrganization()">+ DODAJ ORGANIZACJĘ</button>
-    </div>
+    <div class="app-wrapper">
+        <!-- Pasek górny -->
+        <header class="top-header">
+            <div class="brand">
+                <a href="../index.html" class="back-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    MENU GŁÓWNE
+                </a>
+                <span class="divider">/</span>
+                <h1>PANEL ORGANIZACJI</h1>
+            </div>
+            <button class="btn-primary" onclick="addOrganization()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                NOWA FRAKCJA
+            </button>
+        </header>
 
-    <div class="main-layout">
-        <div class="tabs-sidebar" id="tabsList"></div>
-        <div class="content-area" id="contentArea"></div>
+        <!-- Główna przestrzeń robocza -->
+        <div class="main-content">
+            <!-- Sidebar z zakładkami -->
+            <aside class="sidebar">
+                <div class="sidebar-title">LISTA FRAKCJI</div>
+                <div class="tabs-list" id="tabsList"></div>
+            </aside>
+
+            <!-- Główny panel edycji -->
+            <main class="workspace" id="contentArea"></main>
+        </div>
     </div>
 
     <script src="script.js"></script>
