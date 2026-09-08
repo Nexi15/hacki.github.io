@@ -1,194 +1,264 @@
+:root {
+    --bg-main: #060709;
+    --bg-card: #0d0f12;
+    --bg-input: #13161a;
+    --border: rgba(255, 255, 255, 0.07);
+    --accent-red: #e63946;
+    --accent-red-glow: rgba(230, 57, 70, 0.35);
+    --text-primary: #f1f5f9;
+    --text-secondary: #8a99ad;
+    --font-heading: 'Orbitron', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 
 body {
-    background: #050505;
-    color: #e1e1e1;
-    padding: 20px;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+.app-wrapper {
+    width: 100%;
     height: 100vh;
     display: flex;
     flex-direction: column;
+    padding: 24px;
+    gap: 20px;
 }
 
-/* PASEK GÓRNY */
-.top-bar {
+/* HEADER */
+.top-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #8b0000;
-    padding-bottom: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 16px 24px;
+    border-radius: 12px;
 }
 
-.back-btn, .add-btn {
-    font-family: 'Oswald', sans-serif;
-    color: #ff2e2e;
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
     text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 1px;
-    background: rgba(139, 0, 0, 0.15);
-    padding: 8px 18px;
-    border-radius: 4px;
-    border: 1px solid #8b0000;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-transform: uppercase;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
 }
 
-.back-btn:hover, .add-btn:hover {
-    background: #8b0000;
-    color: #ffffff;
-    box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+.back-link:hover {
+    color: var(--text-primary);
+}
+
+.divider {
+    color: var(--border);
+}
+
+.brand h1 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    letter-spacing: 1.5px;
+    color: var(--accent-red);
+}
+
+/* PRZYCISKI */
+.btn-primary {
+    background: var(--accent-red);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--accent-red-glow);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #ff4d5a;
+    transform: translateY(-2px);
 }
 
 /* UKŁAD GŁÓWNY */
-.main-layout {
-    display: flex;
+.main-content {
+    display: grid;
+    grid-template-columns: 280px 1fr;
     gap: 20px;
     flex-grow: 1;
     overflow: hidden;
 }
 
-/* MENU BOCZNE */
-.tabs-sidebar {
-    width: 260px;
-    background: #0a0a0a;
-    border: 1px solid #1a1a1a;
-    border-left: 3px solid #8b0000;
-    border-radius: 4px;
-    padding: 10px;
+/* SIDEBAR */
+.sidebar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 12px;
+}
+
+.sidebar-title {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.tabs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     overflow-y: auto;
 }
 
-.tab-btn {
-    font-family: 'Oswald', sans-serif;
-    background: #111111;
-    border: 1px solid #222222;
-    color: #888888;
-    padding: 12px 15px;
-    border-radius: 3px;
+.tab-item {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    padding: 14px 16px;
+    border-radius: 8px;
     text-align: left;
-    font-size: 1.1rem;
-    letter-spacing: 1px;
+    font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
-}
-
-.tab-btn:hover {
-    color: #ffffff;
-    border-color: #555555;
-}
-
-.tab-btn.active {
-    background: linear-gradient(90deg, rgba(139, 0, 0, 0.4) 0%, rgba(10, 10, 10, 1) 100%);
-    color: #ff3333;
-    border-color: #8b0000;
-    box-shadow: -2px 0 0 #ff0000;
-}
-
-/* EDYTOR */
-.content-area {
-    flex-grow: 1;
-    background: #0a0a0a;
-    border: 1px solid #1a1a1a;
-    border-radius: 4px;
-    padding: 25px;
-    overflow-y: auto;
-}
-
-.editor-card {
+    transition: all 0.2s ease;
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tab-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+}
+
+.tab-item.active {
+    background: rgba(230, 57, 70, 0.1);
+    border-color: rgba(230, 57, 70, 0.4);
+    color: var(--accent-red);
+}
+
+/* OBSZAR EDYCJI */
+.workspace {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    overflow-y: auto;
 }
 
 .editor-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #222222;
-    padding-bottom: 10px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
 }
 
 .editor-header h2 {
-    font-family: 'Oswald', sans-serif;
-    color: #ff3333;
-    font-size: 1.8rem;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
     letter-spacing: 1px;
-    text-transform: uppercase;
 }
 
-.delete-btn {
-    font-family: 'Oswald', sans-serif;
-    background: rgba(255, 0, 0, 0.1);
+.btn-danger {
+    background: rgba(255, 77, 77, 0.1);
     color: #ff4d4d;
-    border: 1px solid #ff0000;
-    padding: 6px 14px;
-    border-radius: 3px;
+    border: 1px solid rgba(255, 77, 77, 0.2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
     cursor: pointer;
-    font-weight: 700;
-    transition: 0.2s;
+    transition: all 0.2s;
 }
 
-.delete-btn:hover {
-    background: #ff0000;
+.btn-danger:hover {
+    background: #ff4d4d;
     color: #fff;
 }
 
+.form-group {
+    margin-bottom: 24px;
+}
+
 label {
-    font-family: 'Oswald', sans-serif;
-    font-size: 0.95rem;
-    color: #ff3333;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
     display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
 }
 
-input, textarea {
+input[type="text"], textarea {
     width: 100%;
-    background: #111111;
-    border: 1px solid #252525;
-    color: #ffffff;
-    padding: 10px 14px;
-    border-radius: 3px;
-    font-size: 1rem;
-    font-weight: 500;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input:focus, textarea:focus {
+input[type="text"]:focus, textarea:focus {
     outline: none;
-    border-color: #ff0000;
-    box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+    border-color: var(--accent-red);
+    box-shadow: 0 0 0 3px var(--accent-red-glow);
 }
 
-/* CRAFTING SECTION */
-.craft-section {
-    background: #0d0d0d;
-    border-radius: 4px;
-    padding: 18px;
-    border: 1px solid #1c1c1c;
-    border-left: 2px solid #8b0000;
+/* SEKCJA CRAFTINGU */
+.crafting-panel {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
 }
 
-.craft-item {
+.crafting-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.craft-card {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background: #141414;
-    padding: 12px;
-    border-radius: 3px;
-    margin-bottom: 12px;
-    border: 1px solid #222222;
+    gap: 10px;
 }
 
 .craft-row {
@@ -196,18 +266,20 @@ input:focus, textarea:focus {
     gap: 10px;
 }
 
-.remove-craft-btn {
-    background: #220000;
-    border: 1px solid #660000;
+.btn-icon-danger {
+    background: transparent;
+    border: 1px solid var(--border);
     color: #ff4d4d;
-    padding: 0 12px;
-    border-radius: 3px;
+    width: 42px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
 }
 
-.remove-craft-btn:hover {
-    background: #ff0000;
-    color: #fff;
+.btn-icon-danger:hover {
+    background: rgba(255, 77, 77, 0.2);
 }
