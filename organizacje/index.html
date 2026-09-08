@@ -3,35 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizacje | Panel Zarządzania</title>
+    <title>Organizacje | DB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- Pasek nawigacyjny -->
-        <header class="top-header">
-            <div class="nav-brand">
-                <a href="../index.html" class="back-link">⬅ MENU GŁÓWNE</a>
-                <span class="slash">/</span>
-                <h2>PANEL ORGANIZACJI</h2>
+    <div class="app-layout">
+        <header class="navbar">
+            <div class="nav-left">
+                <a href="../index.html" class="back-link">⬅ MENU</a>
+                <span class="sep">/</span>
+                <span class="title">BAZA DANYCH ORGANIZACJI</span>
             </div>
-            <button class="btn-create" onclick="addOrganization()">+ NOWA FRAKCJA</button>
+            <div class="nav-right">
+                <button id="adminLoginBtn" class="btn-admin" onclick="toggleAdminModal()">🔐 PANEL ADMINA</button>
+            </div>
         </header>
 
-        <!-- Główny układ -->
-        <div class="main-layout">
-            <!-- Sidebar z zakładkami -->
+        <div class="content-body">
+            <!-- PASEK BOCZNY -->
             <aside class="sidebar">
-                <div class="sidebar-header">LISTA ORGANIZACJI</div>
-                <div class="tabs-list" id="tabsList"></div>
+                <div class="sidebar-header">
+                    <span>FRAKCJE</span>
+                    <button id="addOrgBtn" class="btn-add-org hidden" onclick="addOrganization()">+ NOWA</button>
+                </div>
+                <div id="tabsList" class="tabs-list"></div>
             </aside>
 
-            <!-- Główny edytor -->
-            <main class="workspace" id="contentArea"></main>
+            <!-- GŁÓWNY OBSZAR -->
+            <main id="mainDisplay" class="main-display"></main>
+        </div>
+    </div>
+
+    <!-- MODAL LOGOWANIA ADMINA -->
+    <div id="adminModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>LOGOWANIE ADMINA</h3>
+            <p>Wprowadź hasło zarządcy, aby edytować dane.</p>
+            <input type="password" id="adminPasswordInput" placeholder="Hasło...">
+            <div class="modal-actions">
+                <button class="btn-sec" onclick="toggleAdminModal()">ANULUJ</button>
+                <button class="btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
+            </div>
         </div>
     </div>
 
