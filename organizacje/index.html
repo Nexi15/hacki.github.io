@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizacje | The Lost MC</title>
+    <title>Organizacje | Panel Zarządzania</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
@@ -11,32 +11,26 @@
 </head>
 <body>
 
-    <div class="app-wrapper">
-        <!-- Pasek górny -->
+    <div class="app-container">
+        <!-- Pasek nawigacyjny -->
         <header class="top-header">
-            <div class="brand">
-                <a href="../index.html" class="back-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    MENU GŁÓWNE
-                </a>
-                <span class="divider">/</span>
-                <h1>PANEL ORGANIZACJI</h1>
+            <div class="nav-brand">
+                <a href="../index.html" class="back-link">⬅ MENU GŁÓWNE</a>
+                <span class="slash">/</span>
+                <h2>PANEL ORGANIZACJI</h2>
             </div>
-            <button class="btn-primary" onclick="addOrganization()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                NOWA FRAKCJA
-            </button>
+            <button class="btn-create" onclick="addOrganization()">+ NOWA FRAKCJA</button>
         </header>
 
-        <!-- Główna przestrzeń robocza -->
-        <div class="main-content">
+        <!-- Główny układ -->
+        <div class="main-layout">
             <!-- Sidebar z zakładkami -->
             <aside class="sidebar">
-                <div class="sidebar-title">LISTA FRAKCJI</div>
+                <div class="sidebar-header">LISTA ORGANIZACJI</div>
                 <div class="tabs-list" id="tabsList"></div>
             </aside>
 
-            <!-- Główny panel edycji -->
+            <!-- Główny edytor -->
             <main class="workspace" id="contentArea"></main>
         </div>
     </div>
