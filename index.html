@@ -17,135 +17,69 @@
         <!-- HEADER -->
         <header class="hero-section">
             <div class="logo-wrapper">
-                <img src="https://i.imgur.com/hY6E6i4.png" alt="Lost MC Logo" class="main-logo" onerror="this.style.display='none'">
+                <img src="https://i.imgur.com/2XyZ5yB.png" alt="Lost MC Logo" class="main-logo" onerror="this.style.display='none'">
             </div>
             <h1 class="glitch-title">THE LOST MC</h1>
             <p class="subtitle">Baza Danych, Narzędzia & Hacki</p>
             <div class="status-tag"><span class="pulse-dot"></span> SYSTEM ONLINE</div>
         </header>
 
-        <!-- SZYBKIE MENU (KARTY MODUŁÓW) -->
+        <!-- SEKCJA NAWIGACJI DO FOLDERÓW -->
         <section class="nav-grid">
             
             <a href="organizacje/index.html" class="nav-card">
                 <div class="card-icon">💀</div>
                 <div class="card-info">
                     <h2>ORGANIZACJE & CRAFTING</h2>
-                    <p>Frakcje, unikalne przedmioty oraz przepisy craftingowe wraz ze zdjęciami.</p>
+                    <p>Baza frakcji, unikalne przedmioty oraz przepisy wytwarzania ze zdjęciami.</p>
                 </div>
                 <div class="card-arrow">➔</div>
             </a>
 
-            <div class="nav-card" onclick="openModal('mapModal')">
+            <a href="map/index.html" class="nav-card">
                 <div class="card-icon">🗺️</div>
                 <div class="card-info">
                     <h2>MAPA TAKTYCZNA</h2>
-                    <p>Lokalizacje dziupli, stref wpływów, dilera oraz punktów zrzutu.</p>
+                    <p>Interaktywna mapa ze strefami wpływów, punktami zrzutu i lokalizacjami.</p>
                 </div>
                 <div class="card-arrow">➔</div>
-            </div>
+            </a>
 
-            <div class="nav-card" onclick="openModal('hackModal')">
+            <a href="hacki/index.html" class="nav-card">
                 <div class="card-icon">💻</div>
                 <div class="card-info">
-                    <h2>SYMULATOR HACKOWANIA</h2>
-                    <p>Trening hakowania terminali i złamań zabezpieczeń do akcji napadowych.</p>
+                    <h2>CENTRUM HACKOWANIA</h2>
+                    <p>Gry treningowe: Fleeca, Ammunation, Jacht, Sklepy, Alarmy oraz Lights-Out.</p>
                 </div>
                 <div class="card-arrow">➔</div>
-            </div>
+            </a>
 
         </section>
 
-        <!-- SEKCJA GALERII -->
+        <!-- GALERIA KLUBOWA -->
         <section class="gallery-section">
             <h3 class="section-title">GALERIA KLUBOWA</h3>
             <div class="gallery-grid">
                 <div class="photo-card">
-                    <img src="https://i.imgur.com/uE8l0vK.png" alt="Klub 1">
+                    <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800" alt="Stab City Clubhouse">
                     <div class="photo-caption">Stab City Clubhouse</div>
                 </div>
                 <div class="photo-card">
-                    <img src="https://i.imgur.com/RkqKnxF.png" alt="Klub 2">
+                    <img src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=800" alt="Ride or Die">
                     <div class="photo-caption">Ride or Die</div>
                 </div>
                 <div class="photo-card">
-                    <img src="https://i.imgur.com/TDvjfJ3.png" alt="Klub 3">
+                    <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800" alt="Blaine County Brotherhood">
                     <div class="photo-caption">Blaine County Brotherhood</div>
                 </div>
             </div>
         </section>
 
+        <!-- FOOTER -->
         <footer class="main-footer">
             <p>THE LOST MC &copy; 2026 | ALL RIGHTS RESERVED</p>
         </footer>
     </div>
 
-    <!-- MODAL MAPY -->
-    <div id="mapModal" class="modal-overlay hidden">
-        <div class="modal-card map-card-large">
-            <div class="modal-header">
-                <h3>MAPA STREF & LOKALIZACJI</h3>
-                <button class="btn-close" onclick="closeModal('mapModal')">✕</button>
-            </div>
-            <div class="map-container">
-                <img src="https://i.imgur.com/39J6Y9C.jpg" alt="Mapa GTA V" class="map-img" onerror="this.src='https://via.placeholder.com/800x500/111/e63946?text=Brak+Pliku+Mapy'">
-                
-                <!-- Przykładowe punkty na mapie -->
-                <div class="map-marker" style="top: 30%; left: 45%;" title="Stab City (Główna Siedziba)">📍 Stab City</div>
-                <div class="map-marker red" style="top: 55%; left: 60%;" title="Dziupla / Zrzut">⚠️ Dziupla</div>
-                <div class="map-marker green" style="top: 75%; left: 35%;" title="Przeróbka">💰 Pralnia</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL HACKOWANIA -->
-    <div id="hackModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>TERMINAL HACKERSKI</h3>
-                <button class="btn-close" onclick="closeModal('hackModal')">✕</button>
-            </div>
-            <p class="hack-desc">Odgadnij 4-cyfrowy kod PIN, aby zresetować alarm zabezpieczeń!</p>
-            
-            <div class="hack-screen">
-                <span id="hackDisplay">----</span>
-            </div>
-
-            <div class="hack-controls">
-                <input type="text" id="hackInput" maxlength="4" placeholder="Wpisz 4 cyfry...">
-                <button class="btn-primary" onclick="checkHackCode()">HACKUJ</button>
-            </div>
-            <p id="hackFeedback" class="hack-msg"></p>
-        </div>
-    </div>
-
-    <script>
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        // PROSTY SYSTEM MINI-GRY HAKOWANIA
-        let secretCode = Math.floor(1000 + Math.random() * 9000).toString();
-
-        function checkHackCode() {
-            const input = document.getElementById('hackInput').value;
-            const feedback = document.getElementById('hackFeedback');
-            const display = document.getElementById('hackDisplay');
-
-            display.innerText = input || "----";
-
-            if (input === secretCode) {
-                feedback.style.color = "#4ade80";
-                feedback.innerText = "ACCESS GRANTED! System Przejęty.";
-                secretCode = Math.floor(1000 + Math.random() * 9000).toString();
-            } else {
-                feedback.style.color = "#e63946";
-                if (input < secretCode) {
-                    feedback.innerText = "ACCESS DENIED! Kod jest WYŻSZY.";
-                } else {
-                    feedback.innerText = "ACCESS DENIED! Kod jest NIŻSZY.";
-                }
-            }
-        }
-    </script>
 </body>
 </html>
