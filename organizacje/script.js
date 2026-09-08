@@ -6,7 +6,7 @@ let orgs = JSON.parse(localStorage.getItem('lostmc_orgs_v4')) || [
         id: 1,
         name: "THE LOST MC",
         logo: "https://i.imgur.com/2XyZ5yB.png",
-        specialItem: "Ciężka Kamizelka Taktyczna",
+        specialItem: "Broń Długa",
         desc: "Klub motocyklowy stacjonujący na obszarze Stab City oraz Blaine County.",
         recipes: [
             {
