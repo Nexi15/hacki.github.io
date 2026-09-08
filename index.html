@@ -11,20 +11,21 @@
 </head>
 <body>
 
-    <!-- PEŁNOEKRANOWE INTRO -->
+    <!-- ULTRADYDYNAMICZNE INTRO -->
     <div id="introScreen" class="intro-overlay">
+        <div class="cyber-grid"></div>
         <div class="scanline"></div>
         <div class="intro-card">
             <div class="logo-box">
+                <div class="logo-ring"></div>
                 <img src="https://i.imgur.com/eT0vCXl.png" alt="Lost MC Logo" class="intro-logo">
             </div>
-            <h1 class="intro-title" data-text="THE LOST MC">THE LOST MC</h1>
+            <h1 class="intro-title">THE LOST MC</h1>
             <p class="intro-subtitle">SAN ANDREAS CHAPTER</p>
-            <div class="intro-divider"></div>
-            <p class="typing-text">> ACCESSING ENCRYPTED DATABASE...</p>
+            <div class="intro-divider"><span></span></div>
+            <p class="typing-text">> ACCESSING ENCRYPTED SYSTEM...</p>
             <button class="btn-enter" onclick="enterSystem()">
-                <span>WSTĄP DO SYSTEMU</span>
-                <div class="btn-glow"></div>
+                <span class="btn-text">WSTĄP DO SYSTEMU</span>
             </button>
         </div>
     </div>
@@ -35,7 +36,8 @@
         <!-- HEADER -->
         <header class="hero-section">
             <div class="logo-wrapper">
-                <img src="https://i.imgur.com/eT0vCXl.png" alt="Lost MC Logo" class="main-logo" onerror="this.style.display='none'">
+                <!-- GŁÓWNE LOGO W KÓŁKU Z ZAOKRĄGLONYMI ROGAMI -->
+                <img src="https://i.imgur.com/eT0vCXl.png" alt="Lost MC Logo" class="main-logo-rounded" onerror="this.style.display='none'">
             </div>
             <h1 class="glitch-title">THE LOST MC</h1>
             <p class="subtitle">Baza Danych, Narzędzia & Hacki</p>
@@ -105,7 +107,7 @@
             intro.classList.add('fade-out');
             setTimeout(() => {
                 intro.style.display = 'none';
-            }, 700);
+            }, 800);
         }
     </script>
 </body>
