@@ -1,18 +1,21 @@
-const ADMIN_PASSWORD = "1312"; // <-- TUTAJSZE HASŁO DO PANELU ADMINA
+const ADMIN_PASSWORD = "1312";
 let isAdmin = false;
 
-let orgs = JSON.parse(localStorage.getItem('lostmc_orgs_v3')) || [
+let orgs = JSON.parse(localStorage.getItem('lostmc_orgs_v4')) || [
     {
         id: 1,
         name: "THE LOST MC",
         logo: "https://i.imgur.com/2XyZ5yB.png",
         specialItem: "Ciężka Kamizelka Taktyczna",
         desc: "Klub motocyklowy stacjonujący na obszarze Stab City oraz Blaine County.",
-        crafts: [
-            { 
-                item: "Pistolet Heavy", 
-                reqs: "50x Stal, 10x Części broni, 2x Sprężyna", 
-                img: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=400" 
+        recipes: [
+            {
+                resultName: "Pistolet Heavy",
+                resultImg: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=400",
+                ingredients: [
+                    { name: "Stal", count: "50x", img: "https://via.placeholder.com/60" },
+                    { name: "Sprężyna", count: "2x", img: "https://via.placeholder.com/60" }
+                ]
             }
         ]
     }
@@ -20,8 +23,8 @@ let orgs = JSON.parse(localStorage.getItem('lostmc_orgs_v3')) || [
 
 let currentTab = orgs[0]?.id || null;
 
-function saveDataSilent() { localStorage.setItem('lostmc_orgs_v3', JSON.stringify(orgs)); }
-function saveDataFull() { localStorage.setItem('lostmc_orgs_v3', JSON.stringify(orgs)); renderTabs(); renderContent(); }
+function saveDataSilent() { localStorage.setItem('lostmc_orgs_v4', JSON.stringify(orgs)); }
+function saveDataFull() { localStorage.setItem('lostmc_orgs_v4', JSON.stringify(orgs)); renderTabs(); renderContent(); }
 
 function toggleAdminModal() {
     if (isAdmin) {
@@ -40,7 +43,7 @@ function loginAdmin() {
     if (input === ADMIN_PASSWORD) {
         isAdmin = true;
         document.getElementById('adminModal').classList.add('hidden');
-        document.getElementById('adminLoginBtn').innerText = "🔓 VYLOGUJ ADMINA";
+        document.getElementById('adminLoginBtn').innerText = "🔓 WYLOGUJ ADMINA";
         document.getElementById('adminLoginBtn').classList.add('active');
         document.getElementById('addOrgBtn').classList.remove('hidden');
         document.getElementById('adminPasswordInput').value = '';
@@ -77,7 +80,7 @@ function renderContent() {
     }
 
     if (!isAdmin) {
-        // WIDOK DLA GRACZY (TYLKO ODCZYT)
+        // WIDOK DLA GRACZY
         area.innerHTML = `
             <div class="org-profile-header">
                 <img src="${org.logo || 'https://via.placeholder.com/90'}" class="org-logo-preview" onerror="this.src='https://via.placeholder.com/90'">
@@ -90,21 +93,31 @@ function renderContent() {
             <div class="section-label">O FRAKCJI</div>
             <div class="org-description">${org.desc || 'Brak opisu.'}</div>
 
-            <div class="section-label">🔨 DOSTĘPNY CRAFTING</div>
-            <div class="crafts-grid">
-                ${org.crafts.map(c => `
-                    <div class="craft-view-card">
-                        ${c.img ? `<img src="${c.img}" class="craft-img" onerror="this.style.display='none'">` : ''}
-                        <div class="craft-info">
-                            <div class="craft-title">${c.item || 'Brak nazwy'}</div>
-                            <div class="craft-reqs"><strong>Składniki:</strong><br>${c.reqs || 'Brak wymagań'}</div>
+            <div class="section-label">🔨 RECEPTURY CRAFTINGU</div>
+            <div class="crafts-container">
+                ${(org.recipes || []).map(r => `
+                    <div class="recipe-card">
+                        <div class="result-box">
+                            <img src="${r.resultImg || 'https://via.placeholder.com/140'}" class="result-img" onerror="this.src='https://via.placeholder.com/140'">
+                            <span class="result-title">${r.resultName || 'Przedmiot KOŃCOWY'}</span>
+                        </div>
+                        <div class="ingredients-list">
+                            ${(r.ingredients || []).map(ing => `
+                                <div class="ingredient-item">
+                                    <img src="${ing.img || 'https://via.placeholder.com/48'}" class="ing-img" onerror="this.src='https://via.placeholder.com/48'">
+                                    <div class="ing-details">
+                                        <span class="ing-name">${ing.name || 'Składnik'}</span>
+                                        <span class="ing-count">${ing.count || '1x'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 `).join('')}
             </div>
         `;
     } else {
-        // WIDOK EDYCJI DLA ADMINA
+        // PANEL ADMINA
         area.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                 <h2>EDYCJA: ${org.name}</h2>
@@ -117,33 +130,48 @@ function renderContent() {
             </div>
 
             <div class="form-group">
-                <label>URL LOGO (ZDJĘCIE FRAKCJI)</label>
-                <input type="text" placeholder="https://..." value="${org.logo || ''}" oninput="updateField(${org.id}, 'logo', this.value)">
+                <label>URL LOGO ORGANIZACJI</label>
+                <input type="text" value="${org.logo || ''}" oninput="updateField(${org.id}, 'logo', this.value)">
             </div>
 
             <div class="form-group">
                 <label>UNIKALNY PRZEDMIOT</label>
-                <input type="text" placeholder="np. Pistolet Vintage" value="${org.specialItem || ''}" oninput="updateField(${org.id}, 'specialItem', this.value)">
+                <input type="text" value="${org.specialItem || ''}" oninput="updateField(${org.id}, 'specialItem', this.value)">
             </div>
 
             <div class="form-group">
-                <label>OPIS / TEREN</label>
+                <label>OPIS FRAKCJI</label>
                 <textarea rows="3" oninput="updateField(${org.id}, 'desc', this.value)">${org.desc}</textarea>
             </div>
 
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 24px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                     <label style="margin:0;">RECEPTURY CRAFTINGU</label>
-                    <button class="btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="addCraft(${org.id})">+ DODAJ PRZEPIS</button>
+                    <button class="btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="addRecipe(${org.id})">+ DODAJ RECEPTURĘ</button>
                 </div>
-                ${org.crafts.map((c, index) => `
-                    <div class="admin-card">
-                        <div style="display:flex; gap:8px; margin-bottom:8px;">
-                            <input type="text" placeholder="Nazwa przedmiotu" value="${c.item}" oninput="updateCraft(${org.id}, ${index}, 'item', this.value)">
-                            <button class="btn-danger" onclick="removeCraft(${org.id}, ${index})">✕</button>
+
+                ${(org.recipes || []).map((r, rIdx) => `
+                    <div class="admin-recipe-box">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong style="color:var(--red);">PRZEPIS #${rIdx + 1}</strong>
+                            <button class="btn-danger" style="padding:2px 6px; font-size:0.7rem;" onclick="removeRecipe(${org.id}, ${rIdx})">USUŃ PRZEPIS</button>
                         </div>
-                        <input type="text" placeholder="URL Zdjęcia przedmiotu (https://...)" value="${c.img || ''}" oninput="updateCraft(${org.id}, ${index}, 'img', this.value)" style="margin-bottom:8px;">
-                        <input type="text" placeholder="Wymagane materiały (np. 10x Stal)" value="${c.reqs}" oninput="updateCraft(${org.id}, ${index}, 'reqs', this.value)">
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
+                            <input type="text" placeholder="Nazwa wyniku (np. Pistolet)" value="${r.resultName}" oninput="updateRecipe(${org.id}, ${rIdx}, 'resultName', this.value)">
+                            <input type="text" placeholder="URL Zdjęcia wyniku" value="${r.resultImg}" oninput="updateRecipe(${org.id}, ${rIdx}, 'resultImg', this.value)">
+                        </div>
+
+                        <label>SKŁADNIKI:</label>
+                        ${(r.ingredients || []).map((ing, iIdx) => `
+                            <div class="admin-ing-row">
+                                <input type="text" placeholder="Nazwa (np. Stal)" value="${ing.name}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'name', this.value)">
+                                <input type="text" placeholder="Ilość (np. 10x)" value="${ing.count}" style="width:90px;" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'count', this.value)">
+                                <input type="text" placeholder="URL Zdjęcia składnika" value="${ing.img}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'img', this.value)">
+                                <button class="btn-danger" onclick="removeIngredient(${org.id}, ${rIdx}, ${iIdx})">✕</button>
+                            </div>
+                        `).join('')}
+                        <button class="btn-sec" style="font-size:0.75rem; padding:4px 8px; margin-top:4px;" onclick="addIngredient(${org.id}, ${rIdx})">+ Dodaj Składnik</button>
                     </div>
                 `).join('')}
             </div>
@@ -166,13 +194,8 @@ function updateField(id, field, val) {
     if (org) { org[field] = val; saveDataSilent(); }
 }
 
-function updateCraft(orgId, index, field, val) {
-    const org = orgs.find(o => o.id === orgId);
-    if (org && org.crafts[index]) { org.crafts[index][field] = val; saveDataSilent(); }
-}
-
 function addOrganization() {
-    const newOrg = { id: Date.now(), name: "NOWA FRAKCJA", logo: "", specialItem: "", desc: "", crafts: [] };
+    const newOrg = { id: Date.now(), name: "NOWA FRAKCJA", logo: "", specialItem: "", desc: "", recipes: [] };
     orgs.push(newOrg);
     currentTab = newOrg.id;
     saveDataFull();
@@ -186,14 +209,49 @@ function deleteOrg(id) {
     }
 }
 
-function addCraft(orgId) {
+/* RECEPTURY I SKŁADNIKI */
+function addRecipe(orgId) {
     const org = orgs.find(o => o.id === orgId);
-    if (org) { org.crafts.push({ item: "", reqs: "", img: "" }); saveDataFull(); }
+    if (org) {
+        if(!org.recipes) org.recipes = [];
+        org.recipes.push({ resultName: "", resultImg: "", ingredients: [] });
+        saveDataFull();
+    }
 }
 
-function removeCraft(orgId, index) {
+function removeRecipe(orgId, rIdx) {
     const org = orgs.find(o => o.id === orgId);
-    if (org) { org.crafts.splice(index, 1); saveDataFull(); }
+    if (org) { org.recipes.splice(rIdx, 1); saveDataFull(); }
+}
+
+function updateRecipe(orgId, rIdx, field, val) {
+    const org = orgs.find(o => o.id === orgId);
+    if (org && org.recipes[rIdx]) { org.recipes[rIdx][field] = val; saveDataSilent(); }
+}
+
+function addIngredient(orgId, rIdx) {
+    const org = orgs.find(o => o.id === orgId);
+    if (org && org.recipes[rIdx]) {
+        if(!org.recipes[rIdx].ingredients) org.recipes[rIdx].ingredients = [];
+        org.recipes[rIdx].ingredients.push({ name: "", count: "", img: "" });
+        saveDataFull();
+    }
+}
+
+function removeIngredient(orgId, rIdx, iIdx) {
+    const org = orgs.find(o => o.id === orgId);
+    if (org && org.recipes[rIdx]) {
+        org.recipes[rIdx].ingredients.splice(iIdx, 1);
+        saveDataFull();
+    }
+}
+
+function updateIngredient(orgId, rIdx, iIdx, field, val) {
+    const org = orgs.find(o => o.id === orgId);
+    if (org && org.recipes[rIdx] && org.recipes[rIdx].ingredients[iIdx]) {
+        org.recipes[rIdx].ingredients[iIdx][field] = val;
+        saveDataSilent();
+    }
 }
 
 renderTabs();
