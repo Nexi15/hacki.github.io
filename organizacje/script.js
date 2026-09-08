@@ -12,12 +12,10 @@ let orgs = JSON.parse(localStorage.getItem('lostmc_orgs')) || [
 
 let currentTab = orgs[0]?.id || null;
 
-// Zapis bez przeładowywania interfejsu (brak gubienia ostrości)
 function saveDataSilent() {
     localStorage.setItem('lostmc_orgs', JSON.stringify(orgs));
 }
 
-// Zapis z odświeżeniem (wywoływany przy zmianach strukturalnych)
 function saveDataFull() {
     localStorage.setItem('lostmc_orgs', JSON.stringify(orgs));
     renderTabs();
@@ -30,7 +28,7 @@ function renderTabs() {
 
     orgs.forEach(org => {
         const btn = document.createElement('button');
-        btn.className = `tab-btn ${org.id === currentTab ? 'active' : ''}`;
+        btn.className = `tab-item ${org.id === currentTab ? 'active' : ''}`;
         btn.id = `tab-btn-${org.id}`;
         btn.innerText = org.name || "BEZ NAZWY";
         btn.onclick = () => {
@@ -47,43 +45,41 @@ function renderContent() {
     const org = orgs.find(o => o.id === currentTab);
 
     if (!org) {
-        area.innerHTML = '<p style="color: #666; font-size: 1.1rem;">Wybierz lub dodaj organizację z panelu po lewej.</p>';
+        area.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding-top: 40px;">Wybierz frakcję z listy po lewej lub utwórz nową.</div>';
         return;
     }
 
     area.innerHTML = `
-        <div class="editor-card">
-            <div class="editor-header">
-                <h2>EDYCJA: ${org.name}</h2>
-                <button class="delete-btn" onclick="deleteOrg(${org.id})">USUŃ ORGANIZACJĘ</button>
-            </div>
+        <div class="editor-header">
+            <h2>${org.name}</h2>
+            <button class="btn-danger" onclick="deleteOrg(${org.id})">USUŃ ORGANIZACJĘ</button>
+        </div>
 
-            <div>
-                <label>Nazwa Organizacji</label>
-                <input type="text" value="${org.name}" oninput="updateName(${org.id}, this.value)">
-            </div>
+        <div class="form-group">
+            <label>Nazwa Organizacji</label>
+            <input type="text" value="${org.name}" oninput="updateName(${org.id}, this.value)">
+        </div>
 
-            <div>
-                <label>Opis / Rejon</label>
-                <textarea rows="3" oninput="updateField(${org.id}, 'desc', this.value)">${org.desc}</textarea>
-            </div>
+        <div class="form-group">
+            <label>Opis i Terytorium</label>
+            <textarea rows="3" oninput="updateField(${org.id}, 'desc', this.value)">${org.desc}</textarea>
+        </div>
 
-            <div class="craft-section">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <label style="margin:0;">🔨 RECUPERY / CRAFTING</label>
-                    <button class="add-btn" style="padding: 4px 10px; font-size:0.8rem;" onclick="addCraft(${org.id})">+ DODAJ PRZEPIS</button>
-                </div>
-                <div id="craftsContainer">
-                    ${org.crafts.map((c, index) => `
-                        <div class="craft-item">
-                            <div class="craft-row">
-                                <input type="text" placeholder="Przedmiot (np. Pistolet)" value="${c.item}" oninput="updateCraft(${org.id}, ${index}, 'item', this.value)">
-                                <button class="remove-craft-btn" onclick="removeCraft(${org.id}, ${index})">✕</button>
-                            </div>
-                            <input type="text" placeholder="Wymagane materiały (np. 10x Stal, 5x Miedź)" value="${c.reqs}" oninput="updateCraft(${org.id}, ${index}, 'reqs', this.value)">
+        <div class="crafting-panel">
+            <div class="crafting-header">
+                <label style="margin:0;">🔨 RECEPTURY CRAFTINGU</label>
+                <button class="btn-primary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="addCraft(${org.id})">+ DODAJ PRZEPIS</button>
+            </div>
+            <div id="craftsContainer">
+                ${org.crafts.map((c, index) => `
+                    <div class="craft-card">
+                        <div class="craft-row">
+                            <input type="text" placeholder="Przedmiot (np. Heavy Pistol)" value="${c.item}" oninput="updateCraft(${org.id}, ${index}, 'item', this.value)">
+                            <button class="btn-icon-danger" onclick="removeCraft(${org.id}, ${index})">✕</button>
                         </div>
-                    `).join('')}
-                </div>
+                        <input type="text" placeholder="Wymagane składniki (np. 10x Stal, 2x Sprężyna)" value="${c.reqs}" oninput="updateCraft(${org.id}, ${index}, 'reqs', this.value)">
+                    </div>
+                `).join('')}
             </div>
         </div>
     `;
@@ -95,7 +91,6 @@ function updateName(id, value) {
         org.name = value;
         saveDataSilent();
         
-        // Aktualizacja nazwy na zakładce w panelu bocznym bez niszczenia pola tekstowego
         const tabBtn = document.getElementById(`tab-btn-${id}`);
         if (tabBtn) tabBtn.innerText = value || "BEZ NAZWY";
     }
@@ -120,8 +115,8 @@ function updateCraft(orgId, index, field, value) {
 function addOrganization() {
     const newOrg = {
         id: Date.now(),
-        name: "NOWA ORGANIZACJA",
-        desc: "Opis działania organizacji...",
+        name: "NOWA FRAKCJA",
+        desc: "Opis frakcji...",
         crafts: []
     };
     orgs.push(newOrg);
@@ -130,7 +125,7 @@ function addOrganization() {
 }
 
 function deleteOrg(id) {
-    if (confirm("Na pewno chcesz usunąć tę organizację?")) {
+    if (confirm("Czy na pewno chcesz usunąć tę organizację?")) {
         orgs = orgs.filter(o => o.id !== id);
         currentTab = orgs[0]?.id || null;
         saveDataFull();
@@ -153,6 +148,5 @@ function removeCraft(orgId, index) {
     }
 }
 
-// Inicjalizacja
 renderTabs();
 renderContent();
