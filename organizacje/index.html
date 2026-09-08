@@ -1,113 +1,73 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Montserrat', sans-serif;
-    user-select: none;
-}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizacje | The Lost MC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;900&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-body, html {
-    width: 100%;
-    height: 100%;
-    background: #080c10;
-    color: #e0e0e0;
-    overflow: hidden;
-}
+    <a href="../index.html" class="back-btn">⬅ Powrót do menu</a>
 
-/* INTRO */
-#intro-screen {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: #050709;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    transition: opacity 1s ease;
-}
+    <div class="container">
+        <h1 class="page-title">BAZA DANYCH ORGANIZACJI</h1>
 
-.intro-title {
-    font-family: 'Cinzel', serif;
-    font-size: 3.5rem;
-    color: #d4af37;
-    text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-    letter-spacing: 6px;
-    animation: pulseGlow 2s infinite alternate;
-}
+        <div class="org-grid">
+            <!-- Karta 1 -->
+            <div class="org-card">
+                <div class="org-header">
+                    <h2>The Lost MC</h2>
+                    <span class="org-tag legal">Klub Motocyklowy</span>
+                </div>
+                <p class="org-desc">Główny klub motocyklowy stacjonujący na Stab City oraz Blaine County.</p>
+                <div class="craft-box">
+                    <h3>🔨 Możliwości Craftingu:</h3>
+                    <ul>
+                        <li>Ciężka amunicja</li>
+                        <li>Pancerze kompozytowe</li>
+                        <li>Modyfikacje do broni krótkiej</li>
+                    </ul>
+                </div>
+            </div>
 
-.intro-sub {
-    font-size: 0.9rem;
-    color: #6a7c8a;
-    letter-spacing: 4px;
-    margin-top: 10px;
-    text-transform: uppercase;
-}
+            <!-- Karta 2 -->
+            <div class="org-card">
+                <div class="org-header">
+                    <h2>Vagos</h2>
+                    <span class="org-tag illegal">Gang Uliczny</span>
+                </div>
+                <p class="org-desc">Kontrolują południowy Rancho i zajmują się dystrybucją substancji.</p>
+                <div class="craft-box">
+                    <h3>🔨 Możliwości Craftingu:</h3>
+                    <ul>
+                        <li>Wytwarzanie narkotyków</li>
+                        <li>Wytrychy / Lockpicki</li>
+                        <li>Pistolety maszynowe</li>
+                    </ul>
+                </div>
+            </div>
 
-@keyframes pulseGlow {
-    0% { text-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
-    100% { text-shadow: 0 0 30px rgba(212, 175, 55, 0.8); }
-}
+            <!-- Karta 3 -->
+            <div class="org-card">
+                <div class="org-header">
+                    <h2>Ballas</h2>
+                    <span class="org-tag illegal">Gang Uliczny</span>
+                </div>
+                <p class="org-desc">Ugrupowanie z Davis zajmujące się nielegalnym tuningiem i przemytem.</p>
+                <div class="craft-box">
+                    <h3>🔨 Możliwości Craftingu:</h3>
+                    <ul>
+                        <li>Tłumiki i powiększone magazynki</li>
+                        <li>Zestawy do tuningu</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
-/* MENU GŁÓWNE */
-#app-container {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-    padding: 20px;
-}
-
-.main-header {
-    font-family: 'Cinzel', serif;
-    color: #d4af37;
-    font-size: 2rem;
-    margin-bottom: 40px;
-    letter-spacing: 2px;
-}
-
-.menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
-    max-width: 1000px;
-    width: 100%;
-}
-
-.menu-card {
-    background: #0d141c;
-    border: 1px solid rgba(212, 175, 55, 0.15);
-    border-radius: 12px;
-    padding: 30px 20px;
-    text-decoration: none;
-    color: inherit;
-    text-align: center;
-    transition: transform 0.2s, border-color 0.2s, background 0.2s;
-}
-
-.menu-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(212, 175, 55, 0.5);
-    background: #111a24;
-}
-
-.card-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-
-.menu-card h2 {
-    font-family: 'Cinzel', serif;
-    font-size: 1.2rem;
-    color: #d4af37;
-    margin-bottom: 8px;
-}
-
-.menu-card p {
-    font-size: 0.85rem;
-    color: #7a8f9d;
-}
+</body>
+</html>
