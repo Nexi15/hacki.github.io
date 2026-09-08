@@ -11,63 +11,19 @@
 </head>
 <body>
 
-    <a href="../index.html" class="back-btn">⬅ Powrót do menu</a>
-
-    <div class="container">
-        <h1 class="page-title">BAZA DANYCH ORGANIZACJI</h1>
-
-        <div class="org-grid">
-            <!-- Karta 1 -->
-            <div class="org-card">
-                <div class="org-header">
-                    <h2>The Lost MC</h2>
-                    <span class="org-tag legal">Klub Motocyklowy</span>
-                </div>
-                <p class="org-desc">Główny klub motocyklowy stacjonujący na Stab City oraz Blaine County.</p>
-                <div class="craft-box">
-                    <h3>🔨 Możliwości Craftingu:</h3>
-                    <ul>
-                        <li>Ciężka amunicja</li>
-                        <li>Pancerze kompozytowe</li>
-                        <li>Modyfikacje do broni krótkiej</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Karta 2 -->
-            <div class="org-card">
-                <div class="org-header">
-                    <h2>Vagos</h2>
-                    <span class="org-tag illegal">Gang Uliczny</span>
-                </div>
-                <p class="org-desc">Kontrolują południowy Rancho i zajmują się dystrybucją substancji.</p>
-                <div class="craft-box">
-                    <h3>🔨 Możliwości Craftingu:</h3>
-                    <ul>
-                        <li>Wytwarzanie narkotyków</li>
-                        <li>Wytrychy / Lockpicki</li>
-                        <li>Pistolety maszynowe</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Karta 3 -->
-            <div class="org-card">
-                <div class="org-header">
-                    <h2>Ballas</h2>
-                    <span class="org-tag illegal">Gang Uliczny</span>
-                </div>
-                <p class="org-desc">Ugrupowanie z Davis zajmujące się nielegalnym tuningiem i przemytem.</p>
-                <div class="craft-box">
-                    <h3>🔨 Możliwości Craftingu:</h3>
-                    <ul>
-                        <li>Tłumiki i powiększone magazynki</li>
-                        <li>Zestawy do tuningu</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+    <div class="top-bar">
+        <a href="../index.html" class="back-btn">⬅ Powrót do menu</a>
+        <button class="add-btn" onclick="addOrganization()">+ Dodaj Organizację</button>
     </div>
 
+    <div class="main-layout">
+        <!-- Panel boczny z zakładkami -->
+        <div class="tabs-sidebar" id="tabsList"></div>
+
+        <!-- Główny obszar edycji/podglądu -->
+        <div class="content-area" id="contentArea"></div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
