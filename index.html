@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>THE LOST MC | DATABASE & TOOLS</title>
-    <!-- NOWE FONTY: Russo One & Rajdhani -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Russo+One&display=swap" rel="stylesheet">
@@ -12,13 +11,21 @@
 </head>
 <body>
 
-    <!-- ANIMACJA POWITALNA (INTRO SCREEN) -->
+    <!-- PEŁNOEKRANOWE INTRO -->
     <div id="introScreen" class="intro-overlay">
-        <div class="intro-content">
-            <img src="https://i.imgur.com/eT0vCXl.png" alt="Lost MC Logo" class="intro-logo">
-            <h1 class="intro-title">THE LOST MC</h1>
+        <div class="scanline"></div>
+        <div class="intro-card">
+            <div class="logo-box">
+                <img src="https://i.imgur.com/eT0vCXl.png" alt="Lost MC Logo" class="intro-logo">
+            </div>
+            <h1 class="intro-title" data-text="THE LOST MC">THE LOST MC</h1>
             <p class="intro-subtitle">SAN ANDREAS CHAPTER</p>
-            <button class="btn-enter" onclick="enterSystem()">WSTĄP DO SYSTEMU</button>
+            <div class="intro-divider"></div>
+            <p class="typing-text">> ACCESSING ENCRYPTED DATABASE...</p>
+            <button class="btn-enter" onclick="enterSystem()">
+                <span>WSTĄP DO SYSTEMU</span>
+                <div class="btn-glow"></div>
+            </button>
         </div>
     </div>
 
@@ -92,14 +99,13 @@
         </footer>
     </div>
 
-    <!-- SKRYPT DO OBSŁUGI ANIMACJI WEJŚCIA -->
     <script>
         function enterSystem() {
             const intro = document.getElementById('introScreen');
             intro.classList.add('fade-out');
             setTimeout(() => {
                 intro.style.display = 'none';
-            }, 800);
+            }, 700);
         }
     </script>
 </body>
