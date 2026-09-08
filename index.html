@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Lost MC | HQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;900&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ANIMOWANE INTRO -->
+    <div id="intro-screen">
+        <div class="intro-title">THE LOST MC</div>
+        <div class="intro-sub">Database & Management System</div>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div id="app-container">
+        <h1 class="main-header">PANEL GŁÓWNY</h1>
+        
+        <div class="menu-grid">
+            <!-- Przekierowanie do folderu map/ -->
+            <a href="map/index.html" class="menu-card">
+                <div class="card-icon">🗺️</div>
+                <h2>INTERAKTYWNA MAPA</h2>
+                <p>Punkty, wraki, flary i strefy na wyspie</p>
+            </a>
+
+            <!-- Przekierowanie do folderu hacki/ -->
+            <a href="hacki/index.html" class="menu-card">
+                <div class="card-icon">💻</div>
+                <h2>HACKI</h2>
+                <p>Narzędzia treningowe i wyciszanie systemów</p>
+            </a>
+
+            <!-- Przekierowanie do folderu organizacje/ -->
+            <a href="organizacje/index.html" class="menu-card">
+                <div class="card-icon">🏢</div>
+                <h2>ORGANIZACJE</h2>
+                <p>Informacje o frakcjach, składach i craftingu</p>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const intro = document.getElementById('intro-screen');
+                const app = document.getElementById('app-container');
+                
+                intro.style.opacity = '0';
+                setTimeout(() => {
+                    intro.style.display = 'none';
+                    app.style.opacity = '1';
+                }, 1000);
+            }, 2500);
+        });
+    </script>
+</body>
+</html>
