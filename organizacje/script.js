@@ -7,11 +7,18 @@ let saveTimer = null;
 
 // GŁÓWNA OBSŁUGA BAZY DANYCH
 function initDatabase() {
+    console.log("Łączenie z Firebase...");
+    
     database.ref('lostmc_orgs_v4').on('value', (snapshot) => {
         const rawData = snapshot.val();
-        
-        // AUTOMATYCZNA ADAPTACJA I PREWENCJA PRZED UTRATĄ TWOICH DANYCH
-        orgs = parseAndFixData(rawData);
+        console.log("Pobrane dane z Firebase:", rawData);
+
+        if (rawData) {
+            orgs = parseData(rawData);
+        } else {
+            console.warn("Baza zwróciła puste dane!");
+            orgs = [];
+        }
 
         if (!currentOrgId && orgs.length > 0) {
             currentOrgId = orgs[0].id;
@@ -19,27 +26,33 @@ function initDatabase() {
 
         renderSidebar();
         
-        // Zabezpieczenie przed przeładowaniem pola wpisywania tekstów podczas pisania
+        // Powstrzymaj nadpisywanie widoku jeśli użytkownik aktualnie coś pisze w polu tekstowym
         if (!document.activeElement || (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
             renderMainView();
+        }
+    }, (error) => {
+        console.error("Błąd połączenia z Firebase:", error);
+        const view = document.getElementById('mainView');
+        if (view) {
+            view.innerHTML = `
+                <div style="color:#ef4444; background:rgba(239,68,68,0.1); border:1px solid #ef4444; padding:20px; border-radius:12px; text-align:center;">
+                    <h3>⚠️ Błąd połączenia z Firebase!</h3>
+                    <p style="margin-top:8px;">${error.message}</p>
+                    <p style="margin-top:8px; font-size:0.85rem; color:#9ca3af;">Sprawdź zakładkę <b>Rules</b> w konsoli Firebase i upewnij się, że .read oraz .write są ustawione na true.</p>
+                </div>
+            `;
         }
     });
 }
 
-// KONWERTER STARYCH BĄDŹ USZKODZONYCH DANYCH
-function parseAndFixData(data) {
-    if (!data) return getInitialData();
-
+function parseData(data) {
     let list = [];
-
-    // Jeśli baza zwróciła obiekt zamiennie za tablicę
     if (typeof data === 'object' && !Array.isArray(data)) {
         list = Object.values(data);
     } else if (Array.isArray(data)) {
         list = data;
     }
 
-    // Konwersja każdego wpisu na pełną strukturę (jeśli np. w bazie był tylko sam string)
     return list.map((item, index) => {
         if (typeof item === 'string') {
             return {
@@ -47,11 +60,10 @@ function parseAndFixData(data) {
                 name: item,
                 logo: "",
                 specialItem: "",
-                desc: "Organizacja przeniesiona ze starych wpisów bazy danych.",
+                desc: "Organizacja przeniesiona ze starych wpisów.",
                 recipes: []
             };
         }
-        
         return {
             id: item.id || (Date.now() + index),
             name: item.name || "Bez nazwy",
@@ -63,36 +75,24 @@ function parseAndFixData(data) {
     });
 }
 
-function getInitialData() {
-    return [{
-        id: Date.now(),
-        name: "THE LOST MC",
-        logo: "https://i.imgur.com/2XyZ5yB.png",
-        specialItem: "Broń Ciężka",
-        desc: "Klub motocyklowy stacjonujący na obszarze Blaine County.",
-        recipes: [
-            {
-                resultName: "Pistolet Cienki",
-                resultImg: "https://via.placeholder.com/60",
-                ingredients: [
-                    { name: "Stal", count: "25x", img: "https://via.placeholder.com/32" }
-                ]
-            }
-        ]
-    }];
-}
-
-// ZAPISYWANIE DANYCH
+// ZAPIS DANYCH
 function saveChanges(instant = false) {
     clearTimeout(saveTimer);
+    const executeSave = () => {
+        database.ref('lostmc_orgs_v4').set(orgs).then(() => {
+            console.log("Zapisano pomyślnie do Firebase!");
+        }).catch((err) => {
+            console.error("Błąd podczas zapisu:", err);
+            alert("Błąd zapisu! Upewnij się, że w konsoli Firebase w zakładce Rules masz .write: true");
+        });
+    };
+
     if (instant) {
-        database.ref('lostmc_orgs_v4').set(orgs);
+        executeSave();
         renderSidebar();
         renderMainView();
     } else {
-        saveTimer = setTimeout(() => {
-            database.ref('lostmc_orgs_v4').set(orgs);
-        }, 600);
+        saveTimer = setTimeout(executeSave, 600);
     }
 }
 
@@ -130,6 +130,11 @@ function renderSidebar() {
     if (!container) return;
     container.innerHTML = '';
 
+    if (orgs.length === 0) {
+        container.innerHTML = '<div style="padding:12px; font-size:0.8rem; color:var(--text-muted); text-align:center;">Brak organizacji w bazie.</div>';
+        return;
+    }
+
     orgs.forEach(org => {
         const item = document.createElement('div');
         item.className = `tab-item ${org.id === currentOrgId ? 'active' : ''}`;
@@ -147,7 +152,7 @@ function renderSidebar() {
     });
 }
 
-// RENDER MAIN VIEW
+// RENDER WIDOKU GŁÓWNEGO
 function renderMainView() {
     const view = document.getElementById('mainView');
     if (!view) return;
@@ -155,7 +160,13 @@ function renderMainView() {
     const org = orgs.find(o => o.id === currentOrgId);
 
     if (!org) {
-        view.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:50px;">Brak wybranej organizacji. Dodaj nową lub wybierz z listy.</div>';
+        view.innerHTML = `
+            <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+                <h2>Baza jest obecnie pusta</h2>
+                <p style="margin-top:10px; margin-bottom:20px;">Zaloguj się do panelu admina (hasło: 1312), aby dodać pierwszą organizację i receptury.</p>
+                <button class="btn-primary" onclick="toggleAdminModal()">Zaloguj Admina i Dodaj</button>
+            </div>
+        `;
         return;
     }
 
@@ -197,7 +208,7 @@ function renderMainView() {
             </div>
         `;
     } else {
-        // WIDOK ADMINA (EDYCJA)
+        // WIDOK ADMINA
         view.innerHTML = `
             <div class="admin-box">
                 <div class="admin-head">
@@ -211,7 +222,7 @@ function renderMainView() {
                 </div>
 
                 <div class="field">
-                    <label>URL LOGO</label>
+                    <label>URL LOGO (ZDJĘCIE)</label>
                     <input type="text" value="${org.logo}" oninput="updateOrgField(${org.id}, 'logo', this.value)">
                 </div>
 
@@ -261,7 +272,7 @@ function renderMainView() {
     }
 }
 
-// EDYCJA AKCJE
+// METODY EDYCJI
 function updateOrgField(id, field, val) {
     const org = orgs.find(o => o.id === id);
     if (org) {
@@ -272,7 +283,7 @@ function updateOrgField(id, field, val) {
 }
 
 function addNewOrganization() {
-    const newOrg = { id: Date.now(), name: "NOWA FRAKCJA", logo: "", specialItem: "", desc: "", recipes: [] };
+    const newOrg = { id: Date.now(), name: "NOWA ORGANIZACJA", logo: "", specialItem: "", desc: "", recipes: [] };
     orgs.push(newOrg);
     currentOrgId = newOrg.id;
     saveChanges(true);
@@ -336,5 +347,7 @@ function updateIngredientField(orgId, rIdx, iIdx, field, val) {
     }
 }
 
-// START
-initDatabase();
+// URUCHOMIENIE
+window.onload = () => {
+    initDatabase();
+};
