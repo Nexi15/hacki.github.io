@@ -3,73 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baza Frakcji & Organizacji</title>
+    <title>Panel Frakcji & Organizacji</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase Apps -->
+    
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
-    <div class="app-layout">
+    <div class="app-container">
         <!-- TOP NAVBAR -->
-        <header class="navbar">
-            <div class="nav-left">
-                <a href="../index.html" class="back-link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    POWRÓT
+        <header class="top-nav">
+            <div class="nav-brand">
+                <a href="../index.html" class="btn-back">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <span>POWRÓT</span>
                 </a>
-                <span class="sep">/</span>
-                <div class="title-brand">
-                    <span class="brand-badge">RP</span>
-                    <span class="title">ORGANIZACJE & FRAKCJE</span>
+                <div class="divider"></div>
+                <div class="brand-title">
+                    <span class="badge">NETWORK</span>
+                    <h1>BAZA ORGANIZACJI</h1>
                 </div>
             </div>
-            <div class="nav-right">
-                <button id="adminLoginBtn" class="btn-admin" onclick="toggleAdminModal()">
-                    <span class="icon">🔒</span> PANEL ADMINA
+
+            <div class="nav-actions">
+                <button id="adminLoginBtn" class="btn-admin-login" onclick="toggleAdminModal()">
+                    <span class="status-dot"></span>
+                    <span id="adminBtnText">PANEL ADMINA</span>
                 </button>
             </div>
         </header>
 
-        <!-- MAIN CONTAINER -->
-        <div class="content-body">
-            <!-- SIDEBAR -->
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <span>LISTA FRAKCJI</span>
-                    <button id="addOrgBtn" class="btn-add-org hidden" onclick="addOrganization()">+ DODAJ</button>
+        <!-- MAIN LAYOUT -->
+        <div class="main-wrapper">
+            <!-- SIDEBAR (LISTA FRAKCJI) -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-top">
+                    <h2>ORGANIZACJE</h2>
+                    <button id="addOrgBtn" class="btn-icon-add hidden" onclick="addOrganization()" title="Dodaj Frakcję">+</button>
                 </div>
-                <div id="tabsList" class="tabs-list">
-                    <!-- Wygenerowane zakładki -->
+
+                <div id="tabsList" class="org-tabs-container">
+                    <!-- Dynamicznie generowana lista -->
                 </div>
             </aside>
 
-            <!-- DISPLAY AREA -->
-            <main id="mainDisplay" class="main-display">
-                <!-- Dynamiczna zawartość -->
+            <!-- MAIN CONTENT AREA -->
+            <main id="mainDisplay" class="content-display">
+                <!-- Dynamiczny widok gracza / admina -->
             </main>
         </div>
     </div>
 
-    <!-- MODAL LOGOWANIA -->
+    <!-- MODAL LOGOWANIA ADMINA -->
     <div id="adminModal" class="modal-overlay hidden">
-        <div class="modal-card">
+        <div class="modal-box">
             <div class="modal-header">
-                <h3>PANEL ADMINISTRATORA</h3>
-                <p>Wprowadź kod dostępu, aby edytować dane.</p>
+                <h3>AUTORYZACJA ADMINA</h3>
+                <p>Podaj kod dostępu, aby edytować bazę frakcji.</p>
             </div>
-            <div class="form-group">
-                <input type="password" id="adminPasswordInput" placeholder="Hasło dostępu...">
+            <div class="modal-body">
+                <input type="password" id="adminPasswordInput" placeholder="Wprowadź hasło..." onkeydown="if(event.key==='Enter') loginAdmin()">
             </div>
-            <div class="modal-actions">
-                <button class="btn-sec" onclick="toggleAdminModal()">ANULUJ</button>
-                <button class="btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="toggleAdminModal()">ANULUJ</button>
+                <button class="btn-confirm" onclick="loginAdmin()">ZALOGUJ</button>
             </div>
         </div>
     </div>
 
-    <!-- Skrypty Firebase & Aplikacji -->
+    <!-- SKRYPTY -->
     <script src="../firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
