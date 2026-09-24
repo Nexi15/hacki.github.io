@@ -3,27 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baza Frakcji & Craftingu</title>
+    <title>Baza Frakcji & Craftingu | Modern UI</title>
+    
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
     
-    <!-- Firebase SDK (Biblioteki Firebase) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // 1. USTAWIENIA FIREBASE (Wszystko w jednym miejscu)
-const firebaseConfig = {
-  apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ",
-  authDomain: "lostmc-db.firebaseapp.com",
-  databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "lostmc-db",
-  storageBucket: "lostmc-db.firebasestorage.app",
-  messagingSenderId: "400562944733",
-  appId: "1:400562944733:web:f33720ac90878966557934",
-  measurementId: "G-MLMBYZXXFF"
-};
+        // USTAWIENIA FIREBASE
+        const firebaseConfig = {
+            apiKey: "TUTAJ_WKLEJ_SWÓJ_API_KEY",
+            authDomain: "lostmc-db.firebaseapp.com",
+            databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "lostmc-db",
+            storageBucket: "lostmc-db.appspot.com",
+            messagingSenderId: "TUTAJ_WKLEJ_SENDER_ID",
+            appId: "TUTAJ_WKLEJ_APP_ID"
+        };
 
-        // Inicjalizacja połączenia
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -32,16 +36,21 @@ const firebaseConfig = {
 </head>
 <body>
 
+    <!-- TŁO Z EFEKTEM BLUR/GLOW -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
     <div class="app-layout">
         <!-- TOP BAR -->
         <header class="top-bar">
             <div class="brand">
                 <a href="../index.html" class="nav-back-btn">
-                    <span>← POWRÓT</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <span>POWRÓT</span>
                 </a>
                 <div class="v-divider"></div>
                 <div class="logo-text">
-                    <span class="tag">NET</span>
+                    <span class="tag">SYSTEM</span>
                     <h2>ORGANIZACJE & CRAFTING</h2>
                 </div>
             </div>
@@ -49,7 +58,7 @@ const firebaseConfig = {
             <div class="top-actions">
                 <button id="adminLoginBtn" class="admin-toggle-btn" onclick="toggleAdminModal()">
                     <span class="dot"></span>
-                    <span id="adminBtnText">ZALOGUJ ADMINA</span>
+                    <span id="adminBtnText">PANEL ADMINA</span>
                 </button>
             </div>
         </header>
@@ -59,7 +68,7 @@ const firebaseConfig = {
             <!-- SIDEBAR -->
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <span>LISTA ORGANIZACJI</span>
+                    <span>ORGANIZACJE</span>
                     <button id="addOrgBtn" class="add-btn hidden" onclick="addNewOrganization()" title="Dodaj nową organizację">+</button>
                 </div>
 
@@ -70,7 +79,10 @@ const firebaseConfig = {
 
             <!-- DISPLAY AREA -->
             <main id="mainView" class="view-container">
-                <div style="color:var(--text-muted); text-align:center; padding-top:50px;">Ładowanie danych z bazy...</div>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Ładowanie bazy danych...</p>
+                </div>
             </main>
         </div>
     </div>
@@ -78,9 +90,11 @@ const firebaseConfig = {
     <!-- MODAL LOGOWANIA ADMINA -->
     <div id="adminModal" class="modal-backdrop hidden">
         <div class="modal-card">
-            <h3>PANEL AUTORYZACJI</h3>
-            <p>Wprowadź kod dostępu, aby edytować bazę.</p>
-            <input type="password" id="adminPasswordInput" placeholder="Hasło..." onkeydown="if(event.key==='Enter') loginAdmin()">
+            <div class="modal-header">
+                <h3>PANEL AUTORYZACJI</h3>
+                <p>Wprowadź kod dostępu, aby edytować dane.</p>
+            </div>
+            <input type="password" id="adminPasswordInput" placeholder="Hasło dostępu..." onkeydown="if(event.key==='Enter') loginAdmin()">
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="toggleAdminModal()">ANULUJ</button>
                 <button class="btn-primary" onclick="loginAdmin()">WEJDŹ</button>
@@ -88,7 +102,6 @@ const firebaseConfig = {
         </div>
     </div>
 
-    <!-- Skrypt obsługi widoku -->
     <script src="script.js"></script>
 </body>
 </html>
