@@ -3,6 +3,7 @@ let isAdmin = false;
 
 let orgs = [];
 let currentTab = null;
+let saveTimeout = null;
 
 // REFERENCE DO BAZY FIREBASE
 const dbRef = database.ref('lostmc_orgs_v4');
@@ -13,7 +14,6 @@ dbRef.on('value', (snapshot) => {
     if (data) {
         orgs = data;
     } else {
-        // Domyślne dane początkowe, jeśli baza jest całkowicie pusta
         orgs = [
             {
                 id: 1,
@@ -33,7 +33,7 @@ dbRef.on('value', (snapshot) => {
                 ]
             }
         ];
-        saveDataSilent();
+        saveDataFull();
     }
 
     if (!currentTab && orgs.length > 0) {
@@ -41,22 +41,29 @@ dbRef.on('value', (snapshot) => {
     }
 
     renderTabs();
-    renderContent();
+    // Przeładowujemy treść tylko wtedy, gdy użytkownik NIE pisze w polu tekstowym (nie ma aktywnego pola)
+    if (!document.activeElement || (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+        renderContent();
+    }
 });
 
-// 2. FUNKCJE ZAPISU DO CHMURY FIREBASE
+// Zapis z opóźnieniem (debounce - 800ms po zaprzestaniu pisania)
 function saveDataSilent() { 
-    dbRef.set(orgs); 
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        dbRef.set(orgs);
+    }, 800);
 }
 
 function saveDataFull() { 
+    clearTimeout(saveTimeout);
     dbRef.set(orgs).then(() => {
         renderTabs(); 
         renderContent(); 
     });
 }
 
-// 3. PANEL ADMINA & LOGOWANIE
+// 2. PANEL ADMINA & LOGOWANIE
 function toggleAdminModal() {
     if (isAdmin) {
         isAdmin = false;
@@ -84,7 +91,7 @@ function loginAdmin() {
     }
 }
 
-// 4. RENDEROWANIE ZAKŁADEK (SIDEBAR)
+// 3. RENDEROWANIE ZAKŁADEK (SIDEBAR)
 function renderTabs() {
     const list = document.getElementById('tabsList');
     if (!list) return;
@@ -104,7 +111,7 @@ function renderTabs() {
     });
 }
 
-// 5. RENDEROWANIE GŁÓWNEJ ZAWARTOŚCI
+// 4. RENDEROWANIE GŁÓWNEJ ZAWARTOŚCI
 function renderContent() {
     const area = document.getElementById('mainDisplay');
     if (!area) return;
@@ -163,7 +170,7 @@ function renderContent() {
 
             <div class="form-group">
                 <label>NAZWA ORGANIZACJI</label>
-                <input type="text" value="${org.name}" oninput="updateName(${org.id}, this.value)">
+                <input type="text" value="${org.name || ''}" oninput="updateName(${org.id}, this.value)">
             </div>
 
             <div class="form-group">
@@ -216,14 +223,14 @@ function renderContent() {
     }
 }
 
-// 6. AKTUALIZACJE POL
+// 5. AKTUALIZACJE PÓL
 function updateName(id, val) {
     const org = orgs.find(o => o.id === id);
     if (org) {
         org.name = val;
-        saveDataSilent();
         const btn = document.getElementById(`tab-btn-${id}`);
         if (btn) btn.innerText = val || "BEZ NAZWY";
+        saveDataSilent();
     }
 }
 
