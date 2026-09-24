@@ -1,31 +1,62 @@
 const ADMIN_PASSWORD = "1312";
 let isAdmin = false;
 
-let orgs = JSON.parse(localStorage.getItem('lostmc_orgs_v4')) || [
-    {
-        id: 1,
-        name: "THE LOST MC",
-        logo: "https://i.imgur.com/2XyZ5yB.png",
-        specialItem: "Broń Długa",
-        desc: "Klub motocyklowy stacjonujący na obszarze Stab City oraz Blaine County.",
-        recipes: [
+let orgs = [];
+let currentTab = null;
+
+// REFERENCE DO BAZY FIREBASE
+const dbRef = database.ref('lostmc_orgs_v4');
+
+// 1. NASŁUCHIWANIE BAZY W CZASIE RZECZYWISTYM
+dbRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        orgs = data;
+    } else {
+        // Domyślne dane początkowe, jeśli baza jest całkowicie pusta
+        orgs = [
             {
-                resultName: "Pistolet Heavy",
-                resultImg: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=400",
-                ingredients: [
-                    { name: "Stal", count: "50x", img: "https://via.placeholder.com/60" },
-                    { name: "Sprężyna", count: "2x", img: "https://via.placeholder.com/60" }
+                id: 1,
+                name: "THE LOST MC",
+                logo: "https://i.imgur.com/2XyZ5yB.png",
+                specialItem: "Broń Długa",
+                desc: "Klub motocyklowy stacjonujący na obszarze Stab City oraz Blaine County.",
+                recipes: [
+                    {
+                        resultName: "Pistolet Heavy",
+                        resultImg: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=400",
+                        ingredients: [
+                            { name: "Stal", count: "50x", img: "https://via.placeholder.com/60" },
+                            { name: "Sprężyna", count: "2x", img: "https://via.placeholder.com/60" }
+                        ]
+                    }
                 ]
             }
-        ]
+        ];
+        saveDataSilent();
     }
-];
 
-let currentTab = orgs[0]?.id || null;
+    if (!currentTab && orgs.length > 0) {
+        currentTab = orgs[0].id;
+    }
 
-function saveDataSilent() { localStorage.setItem('lostmc_orgs_v4', JSON.stringify(orgs)); }
-function saveDataFull() { localStorage.setItem('lostmc_orgs_v4', JSON.stringify(orgs)); renderTabs(); renderContent(); }
+    renderTabs();
+    renderContent();
+});
 
+// 2. FUNKCJE ZAPISU DO CHMURY FIREBASE
+function saveDataSilent() { 
+    dbRef.set(orgs); 
+}
+
+function saveDataFull() { 
+    dbRef.set(orgs).then(() => {
+        renderTabs(); 
+        renderContent(); 
+    });
+}
+
+// 3. PANEL ADMINA & LOGOWANIE
 function toggleAdminModal() {
     if (isAdmin) {
         isAdmin = false;
@@ -53,9 +84,12 @@ function loginAdmin() {
     }
 }
 
+// 4. RENDEROWANIE ZAKŁADEK (SIDEBAR)
 function renderTabs() {
     const list = document.getElementById('tabsList');
+    if (!list) return;
     list.innerHTML = '';
+    
     orgs.forEach(org => {
         const btn = document.createElement('button');
         btn.className = `tab-item ${org.id === currentTab ? 'active' : ''}`;
@@ -70,8 +104,11 @@ function renderTabs() {
     });
 }
 
+// 5. RENDEROWANIE GŁÓWNEJ ZAWARTOŚCI
 function renderContent() {
     const area = document.getElementById('mainDisplay');
+    if (!area) return;
+
     const org = orgs.find(o => o.id === currentTab);
 
     if (!org) {
@@ -141,7 +178,7 @@ function renderContent() {
 
             <div class="form-group">
                 <label>OPIS FRAKCJI</label>
-                <textarea rows="3" oninput="updateField(${org.id}, 'desc', this.value)">${org.desc}</textarea>
+                <textarea rows="3" oninput="updateField(${org.id}, 'desc', this.value)">${org.desc || ''}</textarea>
             </div>
 
             <div style="margin-top: 24px;">
@@ -154,24 +191,24 @@ function renderContent() {
                     <div class="admin-recipe-box">
                         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                             <strong style="color:var(--red);">PRZEPIS #${rIdx + 1}</strong>
-                            <button class="btn-danger" style="padding:2px 6px; font-size:0.7rem;" onclick="removeRecipe(${org.id}, ${rIdx})">USUŃ PRZEPIS</button>
+                            <button class="btn-danger" style="padding:2px 6px; font-size:0.7rem;" onclick="removeRecipe(${org.id},${rIdx})">USUŃ PRZEPIS</button>
                         </div>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
-                            <input type="text" placeholder="Nazwa wyniku (np. Pistolet)" value="${r.resultName}" oninput="updateRecipe(${org.id}, ${rIdx}, 'resultName', this.value)">
-                            <input type="text" placeholder="URL Zdjęcia wyniku" value="${r.resultImg}" oninput="updateRecipe(${org.id}, ${rIdx}, 'resultImg', this.value)">
+                            <input type="text" placeholder="Nazwa wyniku (np. Pistolet)" value="${r.resultName || ''}" oninput="updateRecipe(${org.id},${rIdx}, 'resultName', this.value)">
+                            <input type="text" placeholder="URL Zdjęcia wyniku" value="${r.resultImg || ''}" oninput="updateRecipe(${org.id},${rIdx}, 'resultImg', this.value)">
                         </div>
 
                         <label>SKŁADNIKI:</label>
                         ${(r.ingredients || []).map((ing, iIdx) => `
                             <div class="admin-ing-row">
-                                <input type="text" placeholder="Nazwa (np. Stal)" value="${ing.name}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'name', this.value)">
-                                <input type="text" placeholder="Ilość (np. 10x)" value="${ing.count}" style="width:90px;" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'count', this.value)">
-                                <input type="text" placeholder="URL Zdjęcia składnika" value="${ing.img}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'img', this.value)">
+                                <input type="text" placeholder="Nazwa (np. Stal)" value="${ing.name || ''}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'name', this.value)">
+                                <input type="text" placeholder="Ilość (np. 10x)" value="${ing.count || ''}" style="width:90px;" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'count', this.value)">
+                                <input type="text" placeholder="URL Zdjęcia składnika" value="${ing.img || ''}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'img', this.value)">
                                 <button class="btn-danger" onclick="removeIngredient(${org.id}, ${rIdx}, ${iIdx})">✕</button>
                             </div>
                         `).join('')}
-                        <button class="btn-sec" style="font-size:0.75rem; padding:4px 8px; margin-top:4px;" onclick="addIngredient(${org.id}, ${rIdx})">+ Dodaj Składnik</button>
+                        <button class="btn-sec" style="font-size:0.75rem; padding:4px 8px; margin-top:4px;" onclick="addIngredient(${org.id},${rIdx})">+ Dodaj Składnik</button>
                     </div>
                 `).join('')}
             </div>
@@ -179,6 +216,7 @@ function renderContent() {
     }
 }
 
+// 6. AKTUALIZACJE POL
 function updateName(id, val) {
     const org = orgs.find(o => o.id === id);
     if (org) {
@@ -191,7 +229,10 @@ function updateName(id, val) {
 
 function updateField(id, field, val) {
     const org = orgs.find(o => o.id === id);
-    if (org) { org[field] = val; saveDataSilent(); }
+    if (org) { 
+        org[field] = val; 
+        saveDataSilent(); 
+    }
 }
 
 function addOrganization() {
@@ -213,7 +254,7 @@ function deleteOrg(id) {
 function addRecipe(orgId) {
     const org = orgs.find(o => o.id === orgId);
     if (org) {
-        if(!org.recipes) org.recipes = [];
+        if (!org.recipes) org.recipes = [];
         org.recipes.push({ resultName: "", resultImg: "", ingredients: [] });
         saveDataFull();
     }
@@ -221,18 +262,24 @@ function addRecipe(orgId) {
 
 function removeRecipe(orgId, rIdx) {
     const org = orgs.find(o => o.id === orgId);
-    if (org) { org.recipes.splice(rIdx, 1); saveDataFull(); }
+    if (org && org.recipes) { 
+        org.recipes.splice(rIdx, 1); 
+        saveDataFull(); 
+    }
 }
 
 function updateRecipe(orgId, rIdx, field, val) {
     const org = orgs.find(o => o.id === orgId);
-    if (org && org.recipes[rIdx]) { org.recipes[rIdx][field] = val; saveDataSilent(); }
+    if (org && org.recipes && org.recipes[rIdx]) { 
+        org.recipes[rIdx][field] = val; 
+        saveDataSilent(); 
+    }
 }
 
 function addIngredient(orgId, rIdx) {
     const org = orgs.find(o => o.id === orgId);
-    if (org && org.recipes[rIdx]) {
-        if(!org.recipes[rIdx].ingredients) org.recipes[rIdx].ingredients = [];
+    if (org && org.recipes && org.recipes[rIdx]) {
+        if (!org.recipes[rIdx].ingredients) org.recipes[rIdx].ingredients = [];
         org.recipes[rIdx].ingredients.push({ name: "", count: "", img: "" });
         saveDataFull();
     }
@@ -240,7 +287,7 @@ function addIngredient(orgId, rIdx) {
 
 function removeIngredient(orgId, rIdx, iIdx) {
     const org = orgs.find(o => o.id === orgId);
-    if (org && org.recipes[rIdx]) {
+    if (org && org.recipes && org.recipes[rIdx] && org.recipes[rIdx].ingredients) {
         org.recipes[rIdx].ingredients.splice(iIdx, 1);
         saveDataFull();
     }
@@ -248,11 +295,8 @@ function removeIngredient(orgId, rIdx, iIdx) {
 
 function updateIngredient(orgId, rIdx, iIdx, field, val) {
     const org = orgs.find(o => o.id === orgId);
-    if (org && org.recipes[rIdx] && org.recipes[rIdx].ingredients[iIdx]) {
+    if (org && org.recipes && org.recipes[rIdx] && org.recipes[rIdx].ingredients && org.recipes[rIdx].ingredients[iIdx]) {
         org.recipes[rIdx].ingredients[iIdx][field] = val;
         saveDataSilent();
     }
 }
-
-renderTabs();
-renderContent();
