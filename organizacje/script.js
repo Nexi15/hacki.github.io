@@ -1,158 +1,194 @@
-const ADMIN_PASSWORD = "1312";
+const ADMIN_PASS = "1312";
 let isAdmin = false;
 
 let orgs = [];
-let currentTab = null;
-let saveTimeout = null;
+let currentOrgId = null;
+let saveTimer = null;
 
-// REFERENCE DO BAZY FIREBASE
-const dbRef = database.ref('lostmc_orgs_v4');
+// GŁÓWNA OBSŁUGA BAZY DANYCH
+function initDatabase() {
+    database.ref('lostmc_orgs_v4').on('value', (snapshot) => {
+        const rawData = snapshot.val();
+        
+        // AUTOMATYCZNA ADAPTACJA I PREWENCJA PRZED UTRATĄ TWOICH DANYCH
+        orgs = parseAndFixData(rawData);
 
-// 1. NASŁUCHIWANIE BAZY W CZASIE RZECZYWISTYM
-dbRef.on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-        orgs = data;
-    } else {
-        orgs = [
-            {
-                id: 1,
-                name: "THE LOST MC",
-                logo: "https://i.imgur.com/2XyZ5yB.png",
-                specialItem: "Broń Długa",
-                desc: "Klub motocyklowy stacjonujący na obszarze Stab City oraz Blaine County.",
-                recipes: [
-                    {
-                        resultName: "Pistolet Heavy",
-                        resultImg: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=400",
-                        ingredients: [
-                            { name: "Stal", count: "50x", img: "https://via.placeholder.com/60" },
-                            { name: "Sprężyna", count: "2x", img: "https://via.placeholder.com/60" }
-                        ]
-                    }
-                ]
-            }
-        ];
-        saveDataFull();
-    }
+        if (!currentOrgId && orgs.length > 0) {
+            currentOrgId = orgs[0].id;
+        }
 
-    if (!currentTab && orgs.length > 0) {
-        currentTab = orgs[0].id;
-    }
-
-    renderTabs();
-    // Przeładowujemy treść tylko wtedy, gdy użytkownik NIE pisze w polu tekstowym (nie ma aktywnego pola)
-    if (!document.activeElement || (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
-        renderContent();
-    }
-});
-
-// Zapis z opóźnieniem (debounce - 800ms po zaprzestaniu pisania)
-function saveDataSilent() { 
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-        dbRef.set(orgs);
-    }, 800);
-}
-
-function saveDataFull() { 
-    clearTimeout(saveTimeout);
-    dbRef.set(orgs).then(() => {
-        renderTabs(); 
-        renderContent(); 
+        renderSidebar();
+        
+        // Zabezpieczenie przed przeładowaniem pola wpisywania tekstów podczas pisania
+        if (!document.activeElement || (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+            renderMainView();
+        }
     });
 }
 
-// 2. PANEL ADMINA & LOGOWANIE
+// KONWERTER STARYCH BĄDŹ USZKODZONYCH DANYCH
+function parseAndFixData(data) {
+    if (!data) return getInitialData();
+
+    let list = [];
+
+    // Jeśli baza zwróciła obiekt zamiennie za tablicę
+    if (typeof data === 'object' && !Array.isArray(data)) {
+        list = Object.values(data);
+    } else if (Array.isArray(data)) {
+        list = data;
+    }
+
+    // Konwersja każdego wpisu na pełną strukturę (jeśli np. w bazie był tylko sam string)
+    return list.map((item, index) => {
+        if (typeof item === 'string') {
+            return {
+                id: Date.now() + index,
+                name: item,
+                logo: "",
+                specialItem: "",
+                desc: "Organizacja przeniesiona ze starych wpisów bazy danych.",
+                recipes: []
+            };
+        }
+        
+        return {
+            id: item.id || (Date.now() + index),
+            name: item.name || "Bez nazwy",
+            logo: item.logo || "",
+            specialItem: item.specialItem || "",
+            desc: item.desc || "",
+            recipes: Array.isArray(item.recipes) ? item.recipes : []
+        };
+    });
+}
+
+function getInitialData() {
+    return [{
+        id: Date.now(),
+        name: "THE LOST MC",
+        logo: "https://i.imgur.com/2XyZ5yB.png",
+        specialItem: "Broń Ciężka",
+        desc: "Klub motocyklowy stacjonujący na obszarze Blaine County.",
+        recipes: [
+            {
+                resultName: "Pistolet Cienki",
+                resultImg: "https://via.placeholder.com/60",
+                ingredients: [
+                    { name: "Stal", count: "25x", img: "https://via.placeholder.com/32" }
+                ]
+            }
+        ]
+    }];
+}
+
+// ZAPISYWANIE DANYCH
+function saveChanges(instant = false) {
+    clearTimeout(saveTimer);
+    if (instant) {
+        database.ref('lostmc_orgs_v4').set(orgs);
+        renderSidebar();
+        renderMainView();
+    } else {
+        saveTimer = setTimeout(() => {
+            database.ref('lostmc_orgs_v4').set(orgs);
+        }, 600);
+    }
+}
+
+// LOGOWANIE ADMINA
 function toggleAdminModal() {
     if (isAdmin) {
         isAdmin = false;
-        document.getElementById('adminLoginBtn').innerText = "🔐 PANEL ADMINA";
+        document.getElementById('adminBtnText').innerText = "ZALOGUJ ADMINA";
         document.getElementById('adminLoginBtn').classList.remove('active');
         document.getElementById('addOrgBtn').classList.add('hidden');
-        renderContent();
+        renderMainView();
     } else {
         document.getElementById('adminModal').classList.remove('hidden');
     }
 }
 
 function loginAdmin() {
-    const input = document.getElementById('adminPasswordInput').value;
-    if (input === ADMIN_PASSWORD) {
+    const val = document.getElementById('adminPasswordInput').value;
+    if (val === ADMIN_PASS) {
         isAdmin = true;
         document.getElementById('adminModal').classList.add('hidden');
-        document.getElementById('adminLoginBtn').innerText = "🔓 WYLOGUJ ADMINA";
+        document.getElementById('adminBtnText').innerText = "WYLOGUJ ADMINA";
         document.getElementById('adminLoginBtn').classList.add('active');
         document.getElementById('addOrgBtn').classList.remove('hidden');
         document.getElementById('adminPasswordInput').value = '';
-        renderContent();
+        renderMainView();
     } else {
         alert("Błędne hasło!");
     }
 }
 
-// 3. RENDEROWANIE ZAKŁADEK (SIDEBAR)
-function renderTabs() {
-    const list = document.getElementById('tabsList');
-    if (!list) return;
-    list.innerHTML = '';
-    
+// RENDER SIDEBARU
+function renderSidebar() {
+    const container = document.getElementById('tabsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
     orgs.forEach(org => {
-        const btn = document.createElement('button');
-        btn.className = `tab-item ${org.id === currentTab ? 'active' : ''}`;
-        btn.id = `tab-btn-${org.id}`;
-        btn.innerText = org.name || "BEZ NAZWY";
-        btn.onclick = () => {
-            currentTab = org.id;
-            renderTabs();
-            renderContent();
+        const item = document.createElement('div');
+        item.className = `tab-item ${org.id === currentOrgId ? 'active' : ''}`;
+        item.onclick = () => {
+            currentOrgId = org.id;
+            renderSidebar();
+            renderMainView();
         };
-        list.appendChild(btn);
+
+        item.innerHTML = `
+            <img src="${org.logo || 'https://via.placeholder.com/36'}" class="tab-icon" onerror="this.src='https://via.placeholder.com/36'">
+            <span style="font-weight:600; font-size:0.9rem;">${org.name}</span>
+        `;
+        container.appendChild(item);
     });
 }
 
-// 4. RENDEROWANIE GŁÓWNEJ ZAWARTOŚCI
-function renderContent() {
-    const area = document.getElementById('mainDisplay');
-    if (!area) return;
+// RENDER MAIN VIEW
+function renderMainView() {
+    const view = document.getElementById('mainView');
+    if (!view) return;
 
-    const org = orgs.find(o => o.id === currentTab);
+    const org = orgs.find(o => o.id === currentOrgId);
 
     if (!org) {
-        area.innerHTML = '<div style="color: var(--muted); text-align: center; padding: 40px;">Wybierz lub dodaj organizację.</div>';
+        view.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:50px;">Brak wybranej organizacji. Dodaj nową lub wybierz z listy.</div>';
         return;
     }
 
     if (!isAdmin) {
-        // WIDOK DLA GRACZY
-        area.innerHTML = `
-            <div class="org-profile-header">
-                <img src="${org.logo || 'https://via.placeholder.com/90'}" class="org-logo-preview" onerror="this.src='https://via.placeholder.com/90'">
-                <div class="org-title-area">
+        // WIDOK GRACZA
+        view.innerHTML = `
+            <div class="org-hero">
+                <img src="${org.logo || 'https://via.placeholder.com/84'}" class="org-hero-logo" onerror="this.src='https://via.placeholder.com/84'">
+                <div class="org-hero-details">
                     <h1>${org.name}</h1>
-                    ${org.specialItem ? `<span class="badge-special">⭐ ${org.specialItem}</span>` : ''}
+                    ${org.specialItem ? `<span class="badge-item">⭐ UNIKAT: ${org.specialItem}</span>` : ''}
                 </div>
             </div>
 
-            <div class="section-label">O FRAKCJI</div>
-            <div class="org-description">${org.desc || 'Brak opisu.'}</div>
+            <div class="section-label">O ORGANIZACJI</div>
+            <div class="description-box">${org.desc || 'Brak opisu.'}</div>
 
-            <div class="section-label">🔨 RECEPTURY CRAFTINGU</div>
-            <div class="crafts-container">
+            <div class="section-label">🔨 DOSTĘPNY CRAFTING</div>
+            <div class="crafting-grid">
                 ${(org.recipes || []).map(r => `
-                    <div class="recipe-card">
-                        <div class="result-box">
-                            <img src="${r.resultImg || 'https://via.placeholder.com/140'}" class="result-img" onerror="this.src='https://via.placeholder.com/140'">
-                            <span class="result-title">${r.resultName || 'Przedmiot KOŃCOWY'}</span>
+                    <div class="craft-card">
+                        <div class="craft-header">
+                            <img src="${r.resultImg || 'https://via.placeholder.com/52'}" onerror="this.src='https://via.placeholder.com/52'">
+                            <h4>${r.resultName || 'Przedmiot'}</h4>
                         </div>
                         <div class="ingredients-list">
                             ${(r.ingredients || []).map(ing => `
-                                <div class="ingredient-item">
-                                    <img src="${ing.img || 'https://via.placeholder.com/48'}" class="ing-img" onerror="this.src='https://via.placeholder.com/48'">
-                                    <div class="ing-details">
-                                        <span class="ing-name">${ing.name || 'Składnik'}</span>
-                                        <span class="ing-count">${ing.count || '1x'}</span>
+                                <div class="ing-item">
+                                    <div class="ing-left">
+                                        <img src="${ing.img || 'https://via.placeholder.com/32'}" onerror="this.src='https://via.placeholder.com/32'">
+                                        <span>${ing.name || 'Składnik'}</span>
                                     </div>
+                                    <span class="ing-count">${ing.count || '1x'}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -161,125 +197,117 @@ function renderContent() {
             </div>
         `;
     } else {
-        // PANEL ADMINA
-        area.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <h2>EDYCJA: ${org.name}</h2>
-                <button class="btn-danger" onclick="deleteOrg(${org.id})">USUŃ ORGANIZACJĘ</button>
-            </div>
-
-            <div class="form-group">
-                <label>NAZWA ORGANIZACJI</label>
-                <input type="text" value="${org.name || ''}" oninput="updateName(${org.id}, this.value)">
-            </div>
-
-            <div class="form-group">
-                <label>URL LOGO ORGANIZACJI</label>
-                <input type="text" value="${org.logo || ''}" oninput="updateField(${org.id}, 'logo', this.value)">
-            </div>
-
-            <div class="form-group">
-                <label>UNIKALNY PRZEDMIOT</label>
-                <input type="text" value="${org.specialItem || ''}" oninput="updateField(${org.id}, 'specialItem', this.value)">
-            </div>
-
-            <div class="form-group">
-                <label>OPIS FRAKCJI</label>
-                <textarea rows="3" oninput="updateField(${org.id}, 'desc', this.value)">${org.desc || ''}</textarea>
-            </div>
-
-            <div style="margin-top: 24px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <label style="margin:0;">RECEPTURY CRAFTINGU</label>
-                    <button class="btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="addRecipe(${org.id})">+ DODAJ RECEPTURĘ</button>
+        // WIDOK ADMINA (EDYCJA)
+        view.innerHTML = `
+            <div class="admin-box">
+                <div class="admin-head">
+                    <h2>EDYCJA: ${org.name}</h2>
+                    <button class="btn-danger" onclick="deleteOrg(${org.id})">USUŃ ORGANIZACJĘ</button>
                 </div>
 
-                ${(org.recipes || []).map((r, rIdx) => `
-                    <div class="admin-recipe-box">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                            <strong style="color:var(--red);">PRZEPIS #${rIdx + 1}</strong>
-                            <button class="btn-danger" style="padding:2px 6px; font-size:0.7rem;" onclick="removeRecipe(${org.id},${rIdx})">USUŃ PRZEPIS</button>
-                        </div>
+                <div class="field">
+                    <label>NAZWA ORGANIZACJI</label>
+                    <input type="text" value="${org.name}" oninput="updateOrgField(${org.id}, 'name', this.value)">
+                </div>
 
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
-                            <input type="text" placeholder="Nazwa wyniku (np. Pistolet)" value="${r.resultName || ''}" oninput="updateRecipe(${org.id},${rIdx}, 'resultName', this.value)">
-                            <input type="text" placeholder="URL Zdjęcia wyniku" value="${r.resultImg || ''}" oninput="updateRecipe(${org.id},${rIdx}, 'resultImg', this.value)">
-                        </div>
+                <div class="field">
+                    <label>URL LOGO</label>
+                    <input type="text" value="${org.logo}" oninput="updateOrgField(${org.id}, 'logo', this.value)">
+                </div>
 
-                        <label>SKŁADNIKI:</label>
-                        ${(r.ingredients || []).map((ing, iIdx) => `
-                            <div class="admin-ing-row">
-                                <input type="text" placeholder="Nazwa (np. Stal)" value="${ing.name || ''}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'name', this.value)">
-                                <input type="text" placeholder="Ilość (np. 10x)" value="${ing.count || ''}" style="width:90px;" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'count', this.value)">
-                                <input type="text" placeholder="URL Zdjęcia składnika" value="${ing.img || ''}" oninput="updateIngredient(${org.id}, ${rIdx}, ${iIdx}, 'img', this.value)">
-                                <button class="btn-danger" onclick="removeIngredient(${org.id}, ${rIdx}, ${iIdx})">✕</button>
-                            </div>
-                        `).join('')}
-                        <button class="btn-sec" style="font-size:0.75rem; padding:4px 8px; margin-top:4px;" onclick="addIngredient(${org.id},${rIdx})">+ Dodaj Składnik</button>
+                <div class="field">
+                    <label>UNIKATOWY PRZEDMIOT / CECHA</label>
+                    <input type="text" value="${org.specialItem}" oninput="updateOrgField(${org.id}, 'specialItem', this.value)">
+                </div>
+
+                <div class="field">
+                    <label>OPIS ORGANIZACJI</label>
+                    <textarea rows="3" oninput="updateOrgField(${org.id}, 'desc', this.value)">${org.desc}</textarea>
+                </div>
+
+                <div style="margin-top:28px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="font-size:0.75rem; font-weight:800; color:var(--text-muted); letter-spacing:1px;">RECEPTURY CRAFTINGOWE</span>
+                        <button class="btn-primary" onclick="addRecipe(${org.id})">+ DODAJ RECEPTURĘ</button>
                     </div>
-                `).join('')}
+
+                    ${(org.recipes || []).map((r, rIdx) => `
+                        <div class="recipe-block">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <strong style="color:var(--accent-purple); font-size:0.85rem;">RECEPTURA #${rIdx + 1}</strong>
+                                <button class="btn-danger" style="padding:2px 6px; font-size:0.7rem;" onclick="removeRecipe(${org.id},${rIdx})">USUŃ RECEPTURĘ</button>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                                <input type="text" placeholder="Nazwa przedmiotu" value="${r.resultName || ''}" oninput="updateRecipeField(${org.id},${rIdx}, 'resultName', this.value)">
+                                <input type="text" placeholder="URL Zdjęcia przedmiotu" value="${r.resultImg || ''}" oninput="updateRecipeField(${org.id},${rIdx}, 'resultImg', this.value)">
+                            </div>
+
+                            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); display:block; margin-bottom:6px;">SKŁADNIKI:</label>
+                            ${(r.ingredients || []).map((ing, iIdx) => `
+                                <div class="ing-edit-row">
+                                    <input type="text" placeholder="Nazwa składnika" value="${ing.name || ''}" oninput="updateIngredientField(${org.id}, ${rIdx}, ${iIdx}, 'name', this.value)">
+                                    <input type="text" placeholder="Ilość" value="${ing.count || ''}" style="max-width:90px;" oninput="updateIngredientField(${org.id}, ${rIdx}, ${iIdx}, 'count', this.value)">
+                                    <input type="text" placeholder="URL Zdjęcia" value="${ing.img || ''}" oninput="updateIngredientField(${org.id}, ${rIdx}, ${iIdx}, 'img', this.value)">
+                                    <button class="btn-danger" onclick="removeIngredient(${org.id}, ${rIdx}, ${iIdx})">✕</button>
+                                </div>
+                            `).join('')}
+                            <button class="btn-secondary" style="margin-top:6px;" onclick="addIngredient(${org.id},${rIdx})">+ Dodaj Składnik</button>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
     }
 }
 
-// 5. AKTUALIZACJE PÓL
-function updateName(id, val) {
+// EDYCJA AKCJE
+function updateOrgField(id, field, val) {
     const org = orgs.find(o => o.id === id);
     if (org) {
-        org.name = val;
-        const btn = document.getElementById(`tab-btn-${id}`);
-        if (btn) btn.innerText = val || "BEZ NAZWY";
-        saveDataSilent();
+        org[field] = val;
+        saveChanges(false);
+        if (field === 'name' || field === 'logo') renderSidebar();
     }
 }
 
-function updateField(id, field, val) {
-    const org = orgs.find(o => o.id === id);
-    if (org) { 
-        org[field] = val; 
-        saveDataSilent(); 
-    }
-}
-
-function addOrganization() {
+function addNewOrganization() {
     const newOrg = { id: Date.now(), name: "NOWA FRAKCJA", logo: "", specialItem: "", desc: "", recipes: [] };
     orgs.push(newOrg);
-    currentTab = newOrg.id;
-    saveDataFull();
+    currentOrgId = newOrg.id;
+    saveChanges(true);
 }
 
 function deleteOrg(id) {
-    if (confirm("Usunąć frakcję?")) {
+    if (confirm("Czy na pewno usunąć tę organizację?")) {
         orgs = orgs.filter(o => o.id !== id);
-        currentTab = orgs[0]?.id || null;
-        saveDataFull();
+        currentOrgId = orgs[0]?.id || null;
+        saveChanges(true);
     }
 }
 
-/* RECEPTURY I SKŁADNIKI */
 function addRecipe(orgId) {
     const org = orgs.find(o => o.id === orgId);
     if (org) {
         if (!org.recipes) org.recipes = [];
         org.recipes.push({ resultName: "", resultImg: "", ingredients: [] });
-        saveDataFull();
+        saveChanges(true);
     }
 }
 
 function removeRecipe(orgId, rIdx) {
     const org = orgs.find(o => o.id === orgId);
-    if (org && org.recipes) { 
-        org.recipes.splice(rIdx, 1); 
-        saveDataFull(); 
+    if (org && org.recipes) {
+        org.recipes.splice(rIdx, 1);
+        saveChanges(true);
     }
 }
 
-function updateRecipe(orgId, rIdx, field, val) {
+function updateRecipeField(orgId, rIdx, field, val) {
     const org = orgs.find(o => o.id === orgId);
-    if (org && org.recipes && org.recipes[rIdx]) { 
-        org.recipes[rIdx][field] = val; 
-        saveDataSilent(); 
+    if (org && org.recipes && org.recipes[rIdx]) {
+        org.recipes[rIdx][field] = val;
+        saveChanges(false);
     }
 }
 
@@ -288,7 +316,7 @@ function addIngredient(orgId, rIdx) {
     if (org && org.recipes && org.recipes[rIdx]) {
         if (!org.recipes[rIdx].ingredients) org.recipes[rIdx].ingredients = [];
         org.recipes[rIdx].ingredients.push({ name: "", count: "", img: "" });
-        saveDataFull();
+        saveChanges(true);
     }
 }
 
@@ -296,14 +324,17 @@ function removeIngredient(orgId, rIdx, iIdx) {
     const org = orgs.find(o => o.id === orgId);
     if (org && org.recipes && org.recipes[rIdx] && org.recipes[rIdx].ingredients) {
         org.recipes[rIdx].ingredients.splice(iIdx, 1);
-        saveDataFull();
+        saveChanges(true);
     }
 }
 
-function updateIngredient(orgId, rIdx, iIdx, field, val) {
+function updateIngredientField(orgId, rIdx, iIdx, field, val) {
     const org = orgs.find(o => o.id === orgId);
     if (org && org.recipes && org.recipes[rIdx] && org.recipes[rIdx].ingredients && org.recipes[rIdx].ingredients[iIdx]) {
         org.recipes[rIdx].ingredients[iIdx][field] = val;
-        saveDataSilent();
+        saveChanges(false);
     }
 }
+
+// START
+initDatabase();
