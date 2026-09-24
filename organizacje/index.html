@@ -6,9 +6,28 @@
     <title>Baza Frakcji & Craftingu</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (Biblioteki Firebase) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // 1. USTAWIENIA FIREBASE (Wszystko w jednym miejscu)
+        const firebaseConfig = {
+            apiKey: "TUTAJ_WKLEJ_SWÓJ_API_KEY",
+            authDomain: "lostmc-db.firebaseapp.com",
+            databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "lostmc-db",
+            storageBucket: "lostmc-db.appspot.com",
+            messagingSenderId: "TUTAJ_WKLEJ_SENDER_ID",
+            appId: "TUTAJ_WKLEJ_APP_ID"
+        };
+
+        // Inicjalizacja połączenia
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+    </script>
 </head>
 <body>
 
@@ -68,7 +87,7 @@
         </div>
     </div>
 
-    <script src="../firebase-config.js"></script>
+    <!-- Skrypt obsługi widoku -->
     <script src="script.js"></script>
 </body>
 </html>
