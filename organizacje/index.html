@@ -3,72 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizacje | DB</title>
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Organizacje | LostMC</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div class="app-layout">
-        <header class="navbar">
-            <div class="nav-left">
-                <a href="../index.html" class="back-link">⬅ MENU</a>
-                <span class="sep">/</span>
-                <span class="title">BAZA DANYCH ORGANIZACJI</span>
-            </div>
-            <div class="nav-right">
-                <button id="adminLoginBtn" class="btn-admin" onclick="toggleAdminModal()">🔐 PANEL ADMINA</button>
-            </div>
+    <div class="app-shell">
+        <header class="topbar">
+            <a href="../index.html" class="brand"><span class="brand-mark">L</span><span>LOST<span class="brand-accent">MC</span></span></a>
+            <nav class="topnav">
+                <a href="../index.html" class="back-link">← Menu główne</a>
+                <button id="themeToggle" class="icon-btn" title="Zmień motyw">☼</button>
+                <button id="adminLoginBtn" class="admin-btn" onclick="toggleAdminModal()">🔐 Panel admina</button>
+            </nav>
         </header>
 
-        <div class="content-body">
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <span>FRAKCJE</span>
-                    <button id="addOrgBtn" class="btn-add-org hidden" onclick="addOrganization()">+ NOWA</button>
+        <main class="page-wrap">
+            <section class="hero">
+                <div class="hero-copy">
+                    <div class="eyebrow"><span class="live-dot"></span> BAZA DANYCH • ONLINE</div>
+                    <h1>Organizacje <span>Los Santos</span></h1>
+                    <p>Przeglądaj frakcje, poznaj ich specjalizacje i sprawdzaj receptury w jednym miejscu.</p>
                 </div>
-                <div id="tabsList" class="tabs-list"></div>
-            </aside>
+                <div class="hero-actions">
+                    <button class="secondary-btn" onclick="showDashboard()">⌂ Wszystkie organizacje</button>
+                    <button id="addOrgBtn" class="primary-btn hidden" onclick="addOrganization()">＋ Dodaj organizację</button>
+                </div>
+            </section>
 
-            <main id="mainDisplay" class="main-display"></main>
-        </div>
+            <section class="toolbar">
+                <div class="search-box"><span>⌕</span><input id="orgSearchInput" type="search" placeholder="Szukaj po nazwie lub specjalizacji..." aria-label="Szukaj organizacji"></div>
+                <div class="toolbar-actions">
+                    <select id="sortSelect" aria-label="Sortowanie"><option value="name">Sortuj: A–Z</option><option value="recipes">Najwięcej receptur</option><option value="ingredients">Najwięcej składników</option></select>
+                    <button id="viewToggle" class="view-btn" title="Zmień widok">▦</button>
+                </div>
+            </section>
+
+            <section id="statsBar" class="stats-bar"></section>
+            <section id="mainDisplay" class="main-display"></section>
+        </main>
     </div>
 
-    <!-- MODAL LOGOWANIA -->
+    <div id="toast" class="toast"></div>
     <div id="adminModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <h3>LOGOWANIE ADMINA</h3>
-            <p>Wprowadź hasło, aby edytować zawartość.</p>
-            <input type="password" id="adminPasswordInput" placeholder="Hasło (1312)...">
-            <div class="modal-actions">
-                <button class="btn-sec" onclick="toggleAdminModal()">ANULUJ</button>
-                <button class="btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
-            </div>
+            <button class="modal-close" onclick="toggleAdminModal()">×</button>
+            <div class="modal-icon">🔐</div><h3>Panel administratora</h3>
+            <p>Zaloguj się, aby zarządzać organizacjami i recepturami.</p>
+            <input type="password" id="adminPasswordInput" placeholder="Wpisz hasło...">
+            <div class="modal-actions"><button class="secondary-btn" onclick="toggleAdminModal()">Anuluj</button><button class="primary-btn" onclick="loginAdmin()">Zaloguj się</button></div>
         </div>
     </div>
 
-    <!-- SKRYPTY FIREBASE (PODPIĘCIE TWOJEJ BAZY DANYCH) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmxE7TOK4sqy2zQ",
-        authDomain: "lostmc-db.firebaseapp.com",
-        databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "lostmc-db",
-        storageBucket: "lostmc-db.firebasestorage.app",
-        messagingSenderId: "400562944733",
-        appId: "1:400562944733:web:f33720ac90878966557934",
-        measurementId: "G-MLMBYZXXFF"
-      };
-
-      firebase.initializeApp(firebaseConfig);
-      const database = firebase.database();
+      const firebaseConfig = { apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmxE7TOK4sqy2zQ", authDomain: "lostmc-db.firebaseapp.com", databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app", projectId: "lostmc-db", storageBucket: "lostmc-db.firebasestorage.app", messagingSenderId: "400562944733", appId: "1:400562944733:web:f33720ac90878966557934", measurementId: "G-MLMBYZXXFF" };
+      firebase.initializeApp(firebaseConfig); const database = firebase.database();
     </script>
-
     <script src="script.js"></script>
 </body>
 </html>
