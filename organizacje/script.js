@@ -1,9 +1,27 @@
+// Konfiguracja Twojej bazy Firebase
+var firebaseConfig = {
+    apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ",
+    authDomain: "lostmc-db.firebaseapp.com",
+    databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "lostmc-db",
+    storageBucket: "lostmc-db.firebasestorage.app",
+    messagingSenderId: "400562944733",
+    appId: "1:400562944733:web:f33720ac90878966557934",
+    measurementId: "G-MLMBYZXXFF"
+};
+
+// Inicjalizacja Firebase bezpośrednio w JS
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+var database = firebase.database();
+
 var dataStore = {};
 var selectedKey = null;
 var isAdmin = false;
 
-// Pobieranie danych tak jak w oryginalnym skrypcie
-window.onload = function() {
+// Pobieranie danych z bazy po załadowaniu strony
+document.addEventListener("DOMContentLoaded", function() {
     var orgsRef = database.ref('organizacje');
 
     orgsRef.on('value', function(snapshot) {
@@ -17,11 +35,11 @@ window.onload = function() {
         renderSidebar();
         renderView();
     }, function(error) {
-        console.error("Błąd połączenia z bazą:", error);
+        console.error("Błąd połączenia:", error);
         document.getElementById('mainContent').innerHTML = 
             '<div class="loading-state"><p style="color:var(--accent-red)">Błąd połączenia z bazą danych!</p></div>';
     });
-};
+});
 
 function renderSidebar() {
     var list = document.getElementById('orgList');
