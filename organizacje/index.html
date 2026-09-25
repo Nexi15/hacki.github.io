@@ -3,65 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baza Frakcji & Organizacji</title>
+    <title>Organizacje | DB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase Apps -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
     <div class="app-layout">
-        <!-- TOP NAVBAR -->
         <header class="navbar">
             <div class="nav-left">
-                <a href="../index.html" class="back-link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    POWRÓT
-                </a>
+                <a href="../index.html" class="back-link">⬅ MENU</a>
                 <span class="sep">/</span>
-                <div class="title-brand">
-                    <span class="brand-badge">RP</span>
-                    <span class="title">ORGANIZACJE & FRAKCJE</span>
-                </div>
+                <span class="title">BAZA DANYCH ORGANIZACJI</span>
             </div>
             <div class="nav-right">
-                <button id="adminLoginBtn" class="btn-admin" onclick="toggleAdminModal()">
-                    <span class="icon">🔒</span> PANEL ADMINA
-                </button>
+                <button id="adminLoginBtn" class="btn-admin" onclick="toggleAdminModal()">🔐 PANEL ADMINA</button>
             </div>
         </header>
 
-        <!-- MAIN CONTAINER -->
         <div class="content-body">
-            <!-- SIDEBAR -->
+            <!-- PASEK BOCZNY -->
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <span>LISTA FRAKCJI</span>
-                    <button id="addOrgBtn" class="btn-add-org hidden" onclick="addOrganization()">+ DODAJ</button>
+                    <span>FRAKCJE</span>
+                    <button id="addOrgBtn" class="btn-add-org hidden" onclick="addOrganization()">+ NOWA</button>
                 </div>
-                <div id="tabsList" class="tabs-list">
-                    <!-- Wygenerowane zakładki -->
-                </div>
+                <div id="tabsList" class="tabs-list"></div>
             </aside>
 
-            <!-- DISPLAY AREA -->
-            <main id="mainDisplay" class="main-display">
-                <!-- Dynamiczna zawartość -->
-            </main>
+            <!-- GŁÓWNY OBSZAR -->
+            <main id="mainDisplay" class="main-display"></main>
         </div>
     </div>
 
-    <!-- MODAL LOGOWANIA -->
+    <!-- MODAL LOGOWANIA ADMINA -->
     <div id="adminModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <div class="modal-header">
-                <h3>PANEL ADMINISTRATORA</h3>
-                <p>Wprowadź kod dostępu, aby edytować dane.</p>
-            </div>
-            <div class="form-group">
-                <input type="password" id="adminPasswordInput" placeholder="Hasło dostępu...">
-            </div>
+            <h3>LOGOWANIE ADMINA</h3>
+            <p>Wprowadź hasło zarządcy, aby edytować dane.</p>
+            <input type="password" id="adminPasswordInput" placeholder="Hasło...">
             <div class="modal-actions">
                 <button class="btn-sec" onclick="toggleAdminModal()">ANULUJ</button>
                 <button class="btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
@@ -69,8 +51,6 @@
         </div>
     </div>
 
-    <!-- Skrypty Firebase & Aplikacji -->
-    <script src="../firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
