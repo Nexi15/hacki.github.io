@@ -18,7 +18,7 @@ var dataStore = {};
 var selectedKey = null;
 var isAdmin = false;
 
-// Nasłuchiwanie zmian w bazie z pełnym raportowaniem błędów
+// Pobieranie danych z bazy
 database.ref('organizacje').on('value', function(snapshot) {
     var rawData = snapshot.val();
     dataStore = {};
@@ -42,17 +42,10 @@ database.ref('organizacje').on('value', function(snapshot) {
     renderSidebar();
     renderView();
 }, function(error) {
-    console.error("Szczegóły błędu Firebase:", error);
+    console.error("Błąd bazy danych:", error);
     var main = document.getElementById('mainContent');
     if (main) {
-        main.innerHTML = `
-            <div class="loading-state">
-                <p style="color:var(--accent-red); font-weight:bold;">Błąd połączenia z bazą Firebase!</p>
-                <p style="font-size:0.8rem; color:var(--text-muted); text-align:center; max-width:400px;">
-                    Kod błędu: <code>${error.code || 'UNKNOWN'}</code><br>
-                    Wiadomość: ${error.message}
-                </p>
-            </div>`;
+        main.innerHTML = '<div class="loading-state"><p style="color:var(--accent-red)">Błąd połączenia z bazą Firebase! Sprawdź reguły bazy w Firebase Console.</p></div>';
     }
 });
 
@@ -63,7 +56,7 @@ function renderSidebar() {
 
     var keys = Object.keys(dataStore);
     if (keys.length === 0) {
-        list.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:0.85rem;">Brak frakcji w bazie. Zaloguj się jako Admin i kliknij "+", aby dodać pierwszą!</div>';
+        list.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:0.85rem;">Brak frakcji w bazie. Zaloguj się jako Admin i dodaj pierwszą!</div>';
         return;
     }
 
@@ -104,7 +97,7 @@ function renderView() {
     if (!main) return;
 
     if (!selectedKey || !dataStore[selectedKey]) {
-        main.innerHTML = '<div class="loading-state"><p>Baza danych jest pusta. Zaloguj się jako admin i dodaj pierwszą organizację.</p></div>';
+        main.innerHTML = '<div class="loading-state"><p>Baza jest pusta. Zaloguj się jako admin (hasło: admin123) i kliknij "+", aby dodać organizację.</p></div>';
         return;
     }
 
