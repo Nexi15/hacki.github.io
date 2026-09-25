@@ -3,75 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baza Frakcji & Craftingu</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    
+    <title>Baza Frakcji & Organizacji</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- Firebase SDK v8 -->
+    <!-- Firebase Apps -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
-    <div class="glow-orb orb-1"></div>
-    <div class="glow-orb orb-2"></div>
-    <div class="bg-grid"></div>
-
-    <div class="app-container">
+    <div class="app-layout">
+        <!-- TOP NAVBAR -->
         <header class="navbar">
-            <div class="brand">
-                <a href="../index.html" class="btn-back" title="Powrót">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+            <div class="nav-left">
+                <a href="../index.html" class="back-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    POWRÓT
                 </a>
-                <div class="brand-text">
-                    <h1>DATABASE & CRAFTING</h1>
-                    <span class="badge">SYSTEM v2.0</span>
+                <span class="sep">/</span>
+                <div class="title-brand">
+                    <span class="brand-badge">RP</span>
+                    <span class="title">ORGANIZACJE & FRAKCJE</span>
                 </div>
             </div>
-
-            <div class="nav-actions">
-                <button id="adminBtn" class="btn btn-admin" onclick="openModal()">
-                    <span class="status-dot"></span>
-                    <span id="adminText">PANEL ADMINA</span>
+            <div class="nav-right">
+                <button id="adminLoginBtn" class="btn-admin" onclick="toggleAdminModal()">
+                    <span class="icon">🔒</span> PANEL ADMINA
                 </button>
             </div>
         </header>
 
-        <div class="main-layout">
+        <!-- MAIN CONTAINER -->
+        <div class="content-body">
+            <!-- SIDEBAR -->
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <h2>ORGANIZACJE</h2>
-                    <button id="addOrgBtn" class="btn btn-primary hidden" style="padding: 4px 10px;" onclick="createNewOrg()">+</button>
+                    <span>LISTA FRAKCJI</span>
+                    <button id="addOrgBtn" class="btn-add-org hidden" onclick="addOrganization()">+ DODAJ</button>
                 </div>
-                <input type="text" class="search-input" id="searchInput" placeholder="Szukaj frakcji..." oninput="filterOrgs()">
-                <div class="org-list" id="orgList"></div>
+                <div id="tabsList" class="tabs-list">
+                    <!-- Wygenerowane zakładki -->
+                </div>
             </aside>
 
-            <main class="content-area" id="mainContent">
-                <div class="loading-state">
-                    <div class="spinner"></div>
-                    <p>Łączenie z bazą Firebase...</p>
-                </div>
+            <!-- DISPLAY AREA -->
+            <main id="mainDisplay" class="main-display">
+                <!-- Dynamiczna zawartość -->
             </main>
         </div>
     </div>
 
-    <div class="modal hidden" id="loginModal">
+    <!-- MODAL LOGOWANIA -->
+    <div id="adminModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <h3>PANEL ADMINISTRATORA</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">Wprowadź hasło dostępowe:</p>
-            <input type="password" id="passInput" class="search-input" placeholder="Hasło..." onkeydown="if(event.key==='Enter') loginAdmin()">
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                <button class="btn" onclick="closeModal()">ANULUJ</button>
-                <button class="btn btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
+            <div class="modal-header">
+                <h3>PANEL ADMINISTRATORA</h3>
+                <p>Wprowadź kod dostępu, aby edytować dane.</p>
+            </div>
+            <div class="form-group">
+                <input type="password" id="adminPasswordInput" placeholder="Hasło dostępu...">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-sec" onclick="toggleAdminModal()">ANULUJ</button>
+                <button class="btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
             </div>
         </div>
     </div>
 
+    <!-- Skrypty Firebase & Aplikacji -->
+    <script src="../firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
