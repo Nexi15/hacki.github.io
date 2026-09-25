@@ -5,35 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baza Frakcji & Craftingu</title>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Firebase SDK (Oryginalna wersja v8 Compat) -->
+
+    <!-- Oryginalne skrypty Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <script>
-        // Oryginalny sposób inicjalizacji z Twojego projektu
-        const firebaseConfig = {
-            apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ",
-            authDomain: "lostmc-db.firebaseapp.com",
-            databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "lostmc-db",
-            storageBucket: "lostmc-db.firebasestorage.app",
-            messagingSenderId: "400562944733",
-            appId: "1:400562944733:web:f33720ac90878966557934",
-            measurementId: "G-MLMBYZXXFF"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        var database = firebase.database();
-    </script>
 </head>
 <body>
 
@@ -42,7 +21,6 @@
     <div class="bg-grid"></div>
 
     <div class="app-container">
-        <!-- TOPBAR -->
         <header class="navbar">
             <div class="brand">
                 <a href="../index.html" class="btn-back" title="Powrót">
@@ -62,31 +40,25 @@
             </div>
         </header>
 
-        <!-- DASHBOARD -->
         <div class="main-layout">
-            <!-- LEWY PANEL -->
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <h2>ORGANIZACJE</h2>
                     <button id="addOrgBtn" class="btn btn-primary hidden" style="padding: 4px 10px;" onclick="createNewOrg()">+</button>
                 </div>
                 <input type="text" class="search-input" id="searchInput" placeholder="Szukaj frakcji..." oninput="filterOrgs()">
-                <div class="org-list" id="orgList">
-                    <!-- Dodawane dynamicznie przez JS -->
-                </div>
+                <div class="org-list" id="orgList"></div>
             </aside>
 
-            <!-- PRAWY PANEL -->
             <main class="content-area" id="mainContent">
                 <div class="loading-state">
                     <div class="spinner"></div>
-                    <p>Ładowanie danych z bazy...</p>
+                    <p>Łączenie z bazą Firebase...</p>
                 </div>
             </main>
         </div>
     </div>
 
-    <!-- MODAL LOGOWANIA -->
     <div class="modal hidden" id="loginModal">
         <div class="modal-card">
             <h3>PANEL ADMINISTRATORA</h3>
@@ -99,7 +71,6 @@
         </div>
     </div>
 
-    <!-- Wczytanie skryptu z powrotem jako osobny plik JS -->
     <script src="script.js"></script>
 </body>
 </html>
