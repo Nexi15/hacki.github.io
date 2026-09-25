@@ -18,9 +18,21 @@ var dataStore = {};
 var selectedKey = null;
 var isAdmin = false;
 
-// Pobieranie danych z bazy
+// Pobieranie danych z Firebase
 database.ref('organizacje').on('value', function(snapshot) {
-    dataStore = snapshot.val() || {};
+    var rawData = snapshot.val();
+    dataStore = {};
+
+    if (rawData) {
+        if (Array.isArray(rawData)) {
+            rawData.forEach(function(item, index) {
+                if (item) dataStore['org_' + index] = item;
+            });
+        } else if (typeof rawData === 'object') {
+            dataStore = rawData;
+        }
+    }
+
     var keys = Object.keys(dataStore);
 
     if (keys.length > 0 && (!selectedKey || !dataStore[selectedKey])) {
@@ -30,9 +42,11 @@ database.ref('organizacje').on('value', function(snapshot) {
     renderSidebar();
     renderView();
 }, function(error) {
-    console.error("Błąd połączenia z bazą:", error);
-    document.getElementById('mainContent').innerHTML = 
-        '<div class="loading-state"><p style="color:var(--accent-red)">Błąd połączenia z bazą danych!</p></div>';
+    console.error("Błąd bazy danych:", error);
+    var main = document.getElementById('mainContent');
+    if (main) {
+        main.innerHTML = '<div class="loading-state"><p style="color:var(--accent-red)">Błąd połączenia z bazą danych!</p></div>';
+    }
 });
 
 function renderSidebar() {
@@ -66,12 +80,13 @@ function renderSidebar() {
         var img = org.logo || 'https://via.placeholder.com/42';
         var name = org.name || 'Bez nazwy';
 
-        card.innerHTML = 
-            '<img src="' + img + '" alt="logo">' +
-            '<div class="org-card-info">' +
-                '<h3>' + name + '</h3>' +
-                '<p>' + count + ' Receptur</p>' +
-            '</div>';
+        card.innerHTML = `
+            <img src="${img}" alt="logo">
+            <div class="org-card-info">
+                <h3>${name}</h3>
+                <p>${count} Receptur</p>
+            </div>
+        `;
             
         list.appendChild(card);
     });
@@ -93,7 +108,6 @@ function renderView() {
         return;
     }
 
-    // Bezpieczne generowanie HTML dla craftingu
     var recipesList = '';
     if (org.recipes) {
         var recipesArray = Array.isArray(org.recipes) ? org.recipes : Object.values(org.recipes);
@@ -106,23 +120,25 @@ function renderView() {
                 var ingArray = Array.isArray(r.ingredients) ? r.ingredients : Object.values(r.ingredients);
                 ingArray.forEach(function(i) {
                     if (!i) return;
-                    ingsList += 
-                        '<div class="ing-item">' +
-                            '<span>' + (i.name || 'Składnik') + '</span>' +
-                            '<span class="ing-qty">x' + (i.amount || 1) + '</span>' +
-                        '</div>';
+                    ingsList += `
+                        <div class="ing-item">
+                            <span>${i.name || 'Składnik'}</span>
+                            <span class="ing-qty">x${i.amount || 1}</span>
+                        </div>
+                    `;
                 });
             }
 
-            recipesList += 
-                '<div class="recipe-card">' +
-                    '<div class="recipe-header">' +
-                        '<img src="' + (r.resultIcon || 'https://via.placeholder.com/44') + '" alt="item">' +
-                        '<h4>' + (r.resultName || 'Przedmiot') + '</h4>' +
-                    '</div>' +
-                    '<div class="section-title">SKŁADNIKI:</div>' +
-                    (ingsList || '<p style="font-size:0.8rem; color:var(--text-muted)">Brak składników</p>') +
-                '</div>';
+            recipesList += `
+                <div class="recipe-card">
+                    <div class="recipe-header">
+                        <img src="${r.resultIcon || 'https://via.placeholder.com/44'}" alt="item">
+                        <h4>${r.resultName || 'Przedmiot'}</h4>
+                    </div>
+                    <div class="section-title">SKŁADNIKI:</div>
+                    ${ingsList || '<p style="font-size:0.8rem; color:var(--text-muted)">Brak składników</p>'}
+                </div>
+            `;
         });
     }
 
@@ -130,53 +146,59 @@ function renderView() {
         recipesList = '<p style="color:var(--text-muted); font-size:0.85rem;">Ta frakcja nie posiada jeszcze dodanych receptur.</p>';
     }
 
-    var html = 
-        '<div class="hero-banner">' +
-            '<div class="hero-left">' +
-                '<img src="' + (org.logo || 'https://via.placeholder.com/72') + '" class="hero-logo">' +
-                '<div class="hero-title">' +
-                    '<h2>' + (org.name || 'Bez nazwy') + '</h2>' +
-                    '<span class="badge">FRAKCJA AKTYWNA</span>' +
-                '</div>' +
-            '</div>' +
-            (isAdmin ? '<button class="btn" onclick="toggleEdit()">✏️ EDYTUJ</button>' : '') +
-        '</div>';
+    var html = `
+        <div class="hero-banner">
+            <div class="hero-left">
+                <img src="${org.logo || 'https://via.placeholder.com/72'}" class="hero-logo">
+                <div class="hero-title">
+                    <h2>${org.name || 'Bez nazwy'}</h2>
+                    <span class="badge">FRAKCJA AKTYWNA</span>
+                </div>
+            </div>
+            ${isAdmin ? '<button class="btn" onclick="toggleEdit()">✏️ EDYTUJ</button>' : ''}
+        </div>
+    `;
 
     if (org.description) {
-        html += '<div class="section-title">INFORMACJE O FRAKCJI</div>' +
-                '<div class="description-box">' + org.description + '</div>';
+        html += `
+            <div class="section-title">INFORMACJE O FRAKCJI</div>
+            <div class="description-box">${org.description}</div>
+        `;
     }
 
-    html += '<div class="section-title">RECEPTURY CRAFTINGU</div>' +
-            '<div class="crafting-grid">' + recipesList + '</div>';
+    html += `
+        <div class="section-title">RECEPTURY CRAFTINGU</div>
+        <div class="crafting-grid">${recipesList}</div>
+    `;
 
     main.innerHTML = html;
 }
 
 function renderEditMode(container, org) {
-    container.innerHTML = 
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">' +
-            '<h3>Edytujesz: ' + (org.name || '') + '</h3>' +
-            '<div style="display:flex; gap:8px;">' +
-                '<button class="btn" onclick="toggleEdit()">ANULUJ</button>' +
-                '<button class="btn btn-primary" onclick="saveOrg()">ZAPISZ</button>' +
-            '</div>' +
-        '</div>' +
-        '<div class="edit-form">' +
-            '<div>' +
-                '<label>Nazwa organizacji:</label>' +
-                '<input type="text" id="editName" value="' + (org.name || '') + '" style="width:100%;">' +
-            '</div>' +
-            '<div>' +
-                '<label>URL Logo:</label>' +
-                '<input type="text" id="editLogo" value="' + (org.logo || '') + '" style="width:100%;">' +
-            '</div>' +
-            '<div>' +
-                '<label>Opis:</label>' +
-                '<textarea id="editDesc" rows="5" style="width:100%;">' + (org.description || '') + '</textarea>' +
-            '</div>' +
-            '<button class="btn" style="color:var(--accent-red); border-color:var(--accent-red); margin-top:10px;" onclick="deleteOrg()">USUŃ ORGANIZACJĘ</button>' +
-        '</div>';
+    container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3>Edytujesz: ${org.name || ''}</h3>
+            <div style="display:flex; gap:8px;">
+                <button class="btn" onclick="toggleEdit()">ANULUJ</button>
+                <button class="btn btn-primary" onclick="saveOrg()">ZAPISZ</button>
+            </div>
+        </div>
+        <div class="edit-form">
+            <div>
+                <label>Nazwa organizacji:</label>
+                <input type="text" id="editName" value="${org.name || ''}" style="width:100%;">
+            </div>
+            <div>
+                <label>URL Logo:</label>
+                <input type="text" id="editLogo" value="${org.logo || ''}" style="width:100%;">
+            </div>
+            <div>
+                <label>Opis:</label>
+                <textarea id="editDesc" rows="5" style="width:100%;">${org.description || ''}</textarea>
+            </div>
+            <button class="btn" style="color:var(--accent-red); border-color:var(--accent-red); margin-top:10px;" onclick="deleteOrg()">USUŃ ORGANIZACJĘ</button>
+        </div>
+    `;
 }
 
 function toggleEdit() {
