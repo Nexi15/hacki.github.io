@@ -85,79 +85,85 @@ function renderContent() {
         return;
     }
 
+    area.innerHTML = '<div class="org-profile-shell">';
     if (isAdmin) {
         renderAdminContent(area, org);
     } else {
         renderPublicContent(area, org);
     }
+    area.lastElementChild && area.lastElementChild.classList.add('org-profile-shell');
 }
 
 function renderPublicContent(area, org) {
     const recipes = recipesFor(org);
 
     area.innerHTML = `
-        <div class="org-profile-header">
-            <img src="${escapeHTML(org.logo || fallbackImage)}" class="org-logo-preview" onerror="this.src='${fallbackImage}'" alt="Logo organizacji">
-            <div class="org-title-area">
-                <h1>${escapeHTML(org.name || 'BEZ NAZWY')}</h1>
-                ${org.specialItem ? `<span class="badge-special">✦ ${escapeHTML(org.specialItem)}</span>` : ''}
+        <div class="org-profile-shell">
+            <div class="org-profile-header">
+                <img src="${escapeHTML(org.logo || fallbackImage)}" class="org-logo-preview" onerror="this.src='${fallbackImage}'" alt="Logo organizacji">
+                <div class="org-title-area">
+                    <h1>${escapeHTML(org.name || 'BEZ NAZWY')}</h1>
+                    ${org.specialItem ? `<span class="badge-special">✦ ${escapeHTML(org.specialItem)}</span>` : ''}
+                </div>
             </div>
-        </div>
 
-        <div class="profile-summary">
-            <div class="summary-pill"><span>Status</span><strong>Aktywna</strong></div>
-            <div class="summary-pill"><span>Receptury</span><strong>${recipes.length}</strong></div>
-            <div class="summary-pill"><span>Składniki</span><strong>${ingredientsFor(org)}</strong></div>
-        </div>
+            <div class="profile-summary">
+                <div class="summary-pill"><span>Status</span><strong>Aktywna</strong></div>
+                <div class="summary-pill"><span>Receptury</span><strong>${recipes.length}</strong></div>
+                <div class="summary-pill"><span>Składniki</span><strong>${ingredientsFor(org)}</strong></div>
+            </div>
 
-        <div class="section-label">O ORGANIZACJI</div>
-        <div class="org-description">${escapeHTML(org.desc || 'Brak opisu organizacji.')}</div>
+            <div class="section-label">O ORGANIZACJI</div>
+            <div class="org-description">${escapeHTML(org.desc || 'Brak opisu organizacji.')}</div>
 
-        <div class="section-label">RECEPTURY CRAFTINGU</div>
-        <div class="crafts-container">
-            ${recipes.length ? recipes.map((recipe, index) => `
-                <article class="recipe-card">
-                    <div class="result-box">
-                        <img src="${escapeHTML(recipe.resultImg || fallbackImage)}" class="result-img" onerror="this.src='${fallbackImage}'" alt="Wynik receptury">
-                        <div>
-                            <small class="recipe-label">RECEPTURA ${String(index + 1).padStart(2, '0')}</small>
-                            <div class="result-title">${escapeHTML(recipe.resultName || 'Przedmiot końcowy')}</div>
-                        </div>
-                    </div>
-                    <div class="ingredients-list">
-                        ${(Array.isArray(recipe.ingredients) ? recipe.ingredients : []).map(ingredient => `
-                            <div class="ingredient-item">
-                                <img src="${escapeHTML(ingredient.img || fallbackImage)}" class="ing-img" onerror="this.src='${fallbackImage}'" alt="Składnik">
-                                <div class="ing-details">
-                                    <span class="ing-name">${escapeHTML(ingredient.name || 'Składnik')}</span>
-                                    <span class="ing-count">${escapeHTML(ingredient.count || '1x')}</span>
-                                </div>
+            <div class="section-label">RECEPTURY CRAFTINGU</div>
+            <div class="crafts-container">
+                ${recipes.length ? recipes.map((recipe, index) => `
+                    <article class="recipe-card">
+                        <div class="result-box">
+                            <img src="${escapeHTML(recipe.resultImg || fallbackImage)}" class="result-img" onerror="this.src='${fallbackImage}'" alt="Wynik receptury">
+                            <div>
+                                <small class="recipe-label">RECEPTURA ${String(index + 1).padStart(2, '0')}</small>
+                                <div class="result-title">${escapeHTML(recipe.resultName || 'Przedmiot końcowy')}</div>
                             </div>
-                        `).join('') || '<span class="muted">Brak składników</span>'}
-                    </div>
-                </article>
-            `).join('') : '<div class="empty-panel">Ta organizacja nie ma jeszcze receptur.</div>'}
+                        </div>
+                        <div class="ingredients-list">
+                            ${(Array.isArray(recipe.ingredients) ? recipe.ingredients : []).map(ingredient => `
+                                <div class="ingredient-item">
+                                    <img src="${escapeHTML(ingredient.img || fallbackImage)}" class="ing-img" onerror="this.src='${fallbackImage}'" alt="Składnik">
+                                    <div class="ing-details">
+                                        <span class="ing-name">${escapeHTML(ingredient.name || 'Składnik')}</span>
+                                        <span class="ing-count">${escapeHTML(ingredient.count || '1x')}</span>
+                                    </div>
+                                </div>
+                            `).join('') || '<span class="muted">Brak składników</span>'}
+                        </div>
+                    </article>
+                `).join('') : '<div class="empty-panel">Ta organizacja nie ma jeszcze receptur.</div>'}
+            </div>
         </div>
     `;
 }
 
 function renderAdminContent(area, org) {
     area.innerHTML = `
-        <div class="admin-topbar">
-            <h2>EDYCJA: ${escapeHTML(org.name || 'BEZ NAZWY')}</h2>
-            <button class="btn-danger" onclick="deleteOrg(${Number(org.id)})">USUŃ ORGANIZACJĘ</button>
-        </div>
+        <div class="org-profile-shell">
+            <div class="admin-topbar">
+                <h2>EDYCJA: ${escapeHTML(org.name || 'BEZ NAZWY')}</h2>
+                <button class="btn-danger" onclick="deleteOrg(${Number(org.id)})">USUŃ ORGANIZACJĘ</button>
+            </div>
 
-        <div class="form-group"><label>NAZWA ORGANIZACJI</label><input type="text" value="${escapeHTML(org.name)}" oninput="updateField(${Number(org.id)}, 'name', this.value)"></div>
-        <div class="form-group"><label>URL LOGO ORGANIZACJI</label><input type="text" value="${escapeHTML(org.logo)}" oninput="updateField(${Number(org.id)}, 'logo', this.value)"></div>
-        <div class="form-group"><label>UNIKALNY PRZEDMIOT</label><input type="text" value="${escapeHTML(org.specialItem)}" oninput="updateField(${Number(org.id)}, 'specialItem', this.value)"></div>
-        <div class="form-group"><label>OPIS FRAKCJI</label><textarea rows="4" oninput="updateField(${Number(org.id)}, 'desc', this.value)">${escapeHTML(org.desc)}</textarea></div>
+            <div class="form-group"><label>NAZWA ORGANIZACJI</label><input type="text" value="${escapeHTML(org.name)}" oninput="updateField(${Number(org.id)}, 'name', this.value)"></div>
+            <div class="form-group"><label>URL LOGO ORGANIZACJI</label><input type="text" value="${escapeHTML(org.logo)}" oninput="updateField(${Number(org.id)}, 'logo', this.value)"></div>
+            <div class="form-group"><label>UNIKALNY PRZEDMIOT</label><input type="text" value="${escapeHTML(org.specialItem)}" oninput="updateField(${Number(org.id)}, 'specialItem', this.value)"></div>
+            <div class="form-group"><label>OPIS FRAKCJI</label><textarea rows="4" oninput="updateField(${Number(org.id)}, 'desc', this.value)">${escapeHTML(org.desc)}</textarea></div>
 
-        <div class="recipe-toolbar">
-            <label>RECEPTURY CRAFTINGU</label>
-            <button class="btn-primary" onclick="addRecipe(${Number(org.id)})">+ DODAJ RECEPTURĘ</button>
+            <div class="recipe-toolbar">
+                <label>RECEPTURY CRAFTINGU</label>
+                <button class="secondary-btn" onclick="addRecipe(${Number(org.id)})">+ DODAJ RECEPTURĘ</button>
+            </div>
+            ${recipesFor(org).map((recipe, recipeIndex) => renderAdminRecipe(org, recipe, recipeIndex)).join('')}
         </div>
-        ${recipesFor(org).map((recipe, recipeIndex) => renderAdminRecipe(org, recipe, recipeIndex)).join('')}
     `;
 }
 
@@ -178,7 +184,7 @@ function renderAdminRecipe(org, recipe, recipeIndex) {
                     <button class="btn-danger" onclick="removeIngredient(${Number(org.id)}, ${recipeIndex}, ${ingredientIndex})">✕</button>
                 </div>
             `).join('')}
-            <button class="btn-sec" onclick="addIngredient(${Number(org.id)}, ${recipeIndex})">+ DODAJ SKŁADNIK</button>
+            <button class="secondary-btn" onclick="addIngredient(${Number(org.id)}, ${recipeIndex})">+ DODAJ SKŁADNIK</button>
         </div>
     `;
 }
