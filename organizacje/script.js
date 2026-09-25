@@ -1,43 +1,305 @@
 const ADMIN_PASSWORD = "1312";
-let isAdmin = false, orgs = [], currentTab = null, saveTimeout = null, isGrid = true;
 const dbRef = database.ref('lostmc_orgs_v4');
-const $ = id => document.getElementById(id);
-const recipesOf = o => Array.isArray(o?.recipes) ? o.recipes : [];
-const ingredientsOf = o => recipesOf(o).reduce((n, r) => n + (Array.isArray(r.ingredients) ? r.ingredients.length : 0), 0);
-const favorites = () => JSON.parse(localStorage.getItem('lostmc_favorites') || '[]');
-const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 
-function toast(message) { const el = $('toast'); el.textContent = message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2200); }
-function getOrg(id) { return orgs.find(o => String(o.id) === String(id)); }
-function countStats() { return { recipes: orgs.reduce((n,o) => n + recipesOf(o).length, 0), ingredients: orgs.reduce((n,o) => n + ingredientsOf(o), 0) }; }
-function saveDataSilent() { clearTimeout(saveTimeout); saveTimeout = setTimeout(() => dbRef.set(orgs), 700); }
-function saveDataFull() { clearTimeout(saveTimeout); return dbRef.set(orgs).then(() => { renderAll(); toast('Zapisano zmiany'); }); }
+let orgs = [];
+let currentTab = null;
+let isAdmin = false;
+let saveTimeout = null;
 
-function renderStats() { const s = countStats(); $('statsBar').innerHTML = `<div class="stat"><strong>${orgs.length}</strong><span>organizacji</span></div><div class="stat"><strong>${s.recipes}</strong><span>receptur</span></div><div class="stat"><strong>${s.ingredients}</strong><span>składników</span></div><div class="stat status"><i></i><strong>ONLINE</strong><span>Firebase</span></div>`; }
-function sortedOrgs() { const term = ($('orgSearchInput')?.value || '').toLowerCase(); const sort = $('sortSelect')?.value || 'name'; let list = orgs.filter(o => `${o.name || ''} ${o.specialItem || ''} ${o.desc || ''}`.toLowerCase().includes(term)); return list.sort((a,b) => sort === 'recipes' ? recipesOf(b).length-recipesOf(a).length : sort === 'ingredients' ? ingredientsOf(b)-ingredientsOf(a) : (a.name||'').localeCompare(b.name||'', 'pl')); }
-function isFavorite(id) { return favorites().map(String).includes(String(id)); }
-function toggleFavorite(id) { let list = favorites(); list = isFavorite(id) ? list.filter(x => String(x) !== String(id)) : [...list, id]; localStorage.setItem('lostmc_favorites', JSON.stringify(list)); renderAll(); toast(isFavorite(id) ? 'Dodano do ulubionych' : 'Usunięto z ulubionych'); }
-function selectOrg(id) { currentTab = id; renderAll(); window.scrollTo({top: 0, behavior: 'smooth'}); }
-function showDashboard() { currentTab = null; renderAll(); }
-function renderAll() { renderStats(); currentTab ? renderDetail(getOrg(currentTab)) : renderDashboard(); }
+const fallbackImage = 'https://via.placeholder.com/160x160/111827/94a3b8?text=ORG';
 
-function renderDashboard() { const list = sortedOrgs(); $('mainDisplay').className = `main-display ${isGrid ? 'grid-view' : 'list-view'}`; $('mainDisplay').innerHTML = `<div class="section-heading"><div><div class="eyebrow">CENTRUM ORGANIZACJI</div><h2>Wybierz swoją frakcję</h2></div><span class="result-count">${list.length} wyników</span></div>${list.length ? `<div class="org-grid">${list.map(card).join('')}</div>` : '<div class="empty-state"><span>⌕</span><h3>Nie znaleziono organizacji</h3><p>Spróbuj innej nazwy lub specjalizacji.</p></div>'}`; }
-function card(o) { const fav = isFavorite(o.id); return `<article class="org-card" onclick="selectOrg(${o.id})"><div class="card-cover"><img src="${esc(o.logo || 'https://via.placeholder.com/300')}" onerror="this.src='https://via.placeholder.com/300'"><button class="favorite ${fav?'active':''}" onclick="event.stopPropagation();toggleFavorite(${o.id})">${fav?'♥':'♡'}</button><span class="card-status">● AKTYWNA</span></div><div class="card-body"><h3>${esc(o.name || 'Bez nazwy')}</h3><p class="speciality">${o.specialItem ? '✦ '+esc(o.specialItem) : 'Brak specjalizacji'}</p><p class="card-desc">${esc(o.desc || 'Brak opisu organizacji.')}</p><div class="card-meta"><span>▤ ${recipesOf(o).length} receptur</span><span>◈ ${ingredientsOf(o)} składników</span><b>→</b></div></div></article>`; }
-function renderDetail(org) { if (!org) return showDashboard(); const fav = isFavorite(org.id); $('mainDisplay').className = 'main-display'; $('mainDisplay').innerHTML = `<button class="back-to-grid" onclick="showDashboard()">← Wróć do organizacji</button><section class="profile-hero"><img src="${esc(org.logo || 'https://via.placeholder.com/300')}" onerror="this.src='https://via.placeholder.com/300'"><div><div class="eyebrow">PROFIL ORGANIZACJI</div><h1>${esc(org.name)}</h1><p>${esc(org.desc || 'Brak opisu organizacji.')}</p><div class="profile-tags">${org.specialItem?`<span>✦ ${esc(org.specialItem)}</span>`:''}<span>● Aktywna</span></div></div><button class="favorite profile-favorite ${fav?'active':''}" onclick="toggleFavorite(${org.id})">${fav?'♥ Ulubiona':'♡ Dodaj do ulubionych'}</button></section><div class="detail-heading"><div><div class="eyebrow">BAZA WIEDZY</div><h2>Receptury craftingu</h2></div><span>${recipesOf(org).length} receptur</span></div><div class="recipe-grid">${recipesOf(org).map((r,i)=>recipeCard(r,i)).join('') || '<div class="empty-state"><h3>Brak receptur</h3><p>Ta organizacja nie ma jeszcze dodanych receptur.</p></div>'}</div>`; }
-function recipeCard(r, i) { return `<article class="recipe-card"><div class="recipe-number">RECEPTURA ${String(i+1).padStart(2,'0')}</div><div class="result"><img src="${esc(r.resultImg || 'https://via.placeholder.com/120')}" onerror="this.src='https://via.placeholder.com/120'"><div><small>WYNIK</small><h3>${esc(r.resultName || 'Przedmiot końcowy')}</h3></div></div><div class="ingredients-title"><span>Potrzebne składniki</span><b>${(r.ingredients||[]).length}</b></div><div class="ingredient-list">${(r.ingredients||[]).map(x=>`<div class="ingredient"><img src="${esc(x.img || 'https://via.placeholder.com/48')}" onerror="this.src='https://via.placeholder.com/48'"><span>${esc(x.name || 'Składnik')}</span><strong>${esc(x.count || '1x')}</strong></div>`).join('') || '<span class="muted">Brak składników</span>'}</div></article>`; }
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[char]));
+}
 
-function toggleAdminModal() { if (isAdmin) { isAdmin=false; $('adminLoginBtn').textContent='🔐 Panel admina'; $('addOrgBtn').classList.add('hidden'); renderAll(); } else $('adminModal').classList.toggle('hidden'); }
-function loginAdmin() { if ($('adminPasswordInput').value !== ADMIN_PASSWORD) return alert('Błędne hasło!'); isAdmin=true; $('adminModal').classList.add('hidden'); $('adminLoginBtn').textContent='🔓 Wyloguj admina'; $('addOrgBtn').classList.remove('hidden'); $('adminPasswordInput').value=''; renderAdmin(); }
-function renderAdmin() { const org=getOrg(currentTab); if (!org) return renderDashboard(); $('mainDisplay').innerHTML=`<div class="admin-panel"><div class="section-heading"><div><div class="eyebrow">TRYB ADMINISTRATORA</div><h2>Edycja: ${esc(org.name)}</h2></div><button class="danger-btn" onclick="deleteOrg(${org.id})">Usuń organizację</button></div><div class="form-grid"><label>Nazwa<input value="${esc(org.name)}" oninput="updateField(${org.id},'name',this.value)"></label><label>URL logo<input value="${esc(org.logo)}" oninput="updateField(${org.id},'logo',this.value)"></label><label>Specjalizacja<input value="${esc(org.specialItem)}" oninput="updateField(${org.id},'specialItem',this.value)"></label><label class="wide">Opis<textarea rows="4" oninput="updateField(${org.id},'desc',this.value)">${esc(org.desc)}</textarea></label></div><div class="admin-section-title"><h3>Receptury</h3><button class="primary-btn" onclick="addRecipe(${org.id})">＋ Dodaj recepturę</button></div>${recipesOf(org).map((r,i)=>`<div class="edit-recipe"><div class="edit-head"><b>RECEPTURA ${i+1}</b><button class="danger-btn" onclick="removeRecipe(${org.id},${i})">Usuń</button></div><div class="form-grid"><label>Nazwa wyniku<input value="${esc(r.resultName)}" oninput="updateRecipe(${org.id},${i},'resultName',this.value)"></label><label>URL zdjęcia<input value="${esc(r.resultImg)}" oninput="updateRecipe(${org.id},${i},'resultImg',this.value)"></label></div><div class="admin-section-title"><h4>Składniki</h4><button class="secondary-btn" onclick="addIngredient(${org.id},${i})">＋ Dodaj</button></div>${(r.ingredients||[]).map((x,j)=>`<div class="ingredient-edit"><input placeholder="Nazwa" value="${esc(x.name)}" oninput="updateIngredient(${org.id},${i},${j},'name',this.value)"><input placeholder="Ilość" value="${esc(x.count)}" oninput="updateIngredient(${org.id},${i},${j},'count',this.value)"><input placeholder="URL zdjęcia" value="${esc(x.img)}" oninput="updateIngredient(${org.id},${i},${j},'img',this.value)"><button class="danger-btn" onclick="removeIngredient(${org.id},${i},${j})">×</button></div>`).join('')}</div>`).join('')}</div>`; }
-function updateField(id,f,v) { const o=getOrg(id); if(o){o[f]=v; saveDataSilent();} }
-function addOrganization(){const o={id:Date.now(),name:'NOWA ORGANIZACJA',logo:'',specialItem:'',desc:'',recipes:[]};orgs.push(o);currentTab=o.id;saveDataFull().then(renderAdmin);}
-function deleteOrg(id){if(confirm('Usunąć organizację?')){orgs=orgs.filter(o=>o.id!==id);currentTab=orgs[0]?.id||null;saveDataFull();}}
-function addRecipe(id){const o=getOrg(id);o.recipes??=[];o.recipes.push({resultName:'',resultImg:'',ingredients:[]});saveDataFull().then(renderAdmin);}
-function removeRecipe(id,i){getOrg(id).recipes.splice(i,1);saveDataFull().then(renderAdmin);}
-function updateRecipe(id,i,f,v){getOrg(id).recipes[i][f]=v;saveDataSilent();}
-function addIngredient(id,i){getOrg(id).recipes[i].ingredients??=[];getOrg(id).recipes[i].ingredients.push({name:'',count:'',img:''});saveDataFull().then(renderAdmin);}
-function removeIngredient(id,i,j){getOrg(id).recipes[i].ingredients.splice(j,1);saveDataFull().then(renderAdmin);}
-function updateIngredient(id,i,j,f,v){getOrg(id).recipes[i].ingredients[j][f]=v;saveDataSilent();}
+function normalizeOrganizations(data) {
+    if (!data) return [];
+    if (Array.isArray(data)) return data.filter(Boolean);
+    return Object.values(data).filter(Boolean);
+}
 
-$('orgSearchInput').addEventListener('input', renderDashboard); $('sortSelect').addEventListener('change', renderDashboard); $('viewToggle').addEventListener('click',()=>{isGrid=!isGrid;$('viewToggle').textContent=isGrid?'▦':'☷';renderDashboard();}); $('themeToggle').addEventListener('click',()=>{document.body.classList.toggle('light');localStorage.setItem('lostmc_theme',document.body.classList.contains('light')?'light':'dark');}); if(localStorage.getItem('lostmc_theme')==='light')document.body.classList.add('light'); document.addEventListener('keydown',e=>{if(e.key==='Escape')$('adminModal').classList.add('hidden');});
-dbRef.on('value', snapshot=>{const data=snapshot.val();orgs=Array.isArray(data)?data:(data?Object.values(data):[]);if(!orgs.length){orgs=[{id:1,name:'THE LOST MC',logo:'https://i.imgur.com/2XyZ5yB.png',specialItem:'Broń Długa',desc:'Klub motocyklowy stacjonujący na obszarze Stab City oraz Blaine County.',recipes:[]}];dbRef.set(orgs);}if(!currentTab)renderAll();else isAdmin?renderAdmin():renderAll();});
+function getOrganization(id) {
+    return orgs.find(org => String(org.id) === String(id));
+}
+
+function recipesFor(org) {
+    return Array.isArray(org?.recipes) ? org.recipes : [];
+}
+
+function ingredientsFor(org) {
+    return recipesFor(org).reduce((total, recipe) => {
+        return total + (Array.isArray(recipe.ingredients) ? recipe.ingredients.length : 0);
+    }, 0);
+}
+
+function saveDataSilent() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => dbRef.set(orgs), 800);
+}
+
+function saveDataFull() {
+    clearTimeout(saveTimeout);
+    return dbRef.set(orgs).then(() => {
+        renderTabs();
+        renderContent();
+    }).catch(error => {
+        console.error('Firebase save error:', error);
+        alert('Nie udało się zapisać zmian w bazie Firebase.');
+    });
+}
+
+function renderTabs() {
+    const list = document.getElementById('tabsList');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    if (!orgs.length) {
+        list.innerHTML = '<div class="empty-tab">Brak organizacji</div>';
+        return;
+    }
+
+    orgs.forEach(org => {
+        const button = document.createElement('button');
+        button.className = `tab-item ${String(org.id) === String(currentTab) ? 'active' : ''}`;
+        button.id = `tab-btn-${org.id}`;
+        button.innerHTML = `<span class="tab-name">${escapeHTML(org.name || 'BEZ NAZWY')}</span><span class="tab-count">${recipesFor(org).length}</span>`;
+        button.addEventListener('click', () => {
+            currentTab = org.id;
+            renderTabs();
+            renderContent();
+        });
+        list.appendChild(button);
+    });
+}
+
+function renderContent() {
+    const area = document.getElementById('mainDisplay');
+    if (!area) return;
+
+    const org = getOrganization(currentTab);
+    if (!org) {
+        area.innerHTML = '<div class="empty-panel">Wybierz organizację z listy.</div>';
+        return;
+    }
+
+    if (isAdmin) {
+        renderAdminContent(area, org);
+    } else {
+        renderPublicContent(area, org);
+    }
+}
+
+function renderPublicContent(area, org) {
+    const recipes = recipesFor(org);
+
+    area.innerHTML = `
+        <div class="org-profile-header">
+            <img src="${escapeHTML(org.logo || fallbackImage)}" class="org-logo-preview" onerror="this.src='${fallbackImage}'" alt="Logo organizacji">
+            <div class="org-title-area">
+                <h1>${escapeHTML(org.name || 'BEZ NAZWY')}</h1>
+                ${org.specialItem ? `<span class="badge-special">✦ ${escapeHTML(org.specialItem)}</span>` : ''}
+            </div>
+        </div>
+
+        <div class="profile-summary">
+            <div class="summary-pill"><span>Status</span><strong>Aktywna</strong></div>
+            <div class="summary-pill"><span>Receptury</span><strong>${recipes.length}</strong></div>
+            <div class="summary-pill"><span>Składniki</span><strong>${ingredientsFor(org)}</strong></div>
+        </div>
+
+        <div class="section-label">O ORGANIZACJI</div>
+        <div class="org-description">${escapeHTML(org.desc || 'Brak opisu organizacji.')}</div>
+
+        <div class="section-label">RECEPTURY CRAFTINGU</div>
+        <div class="crafts-container">
+            ${recipes.length ? recipes.map((recipe, index) => `
+                <article class="recipe-card">
+                    <div class="result-box">
+                        <img src="${escapeHTML(recipe.resultImg || fallbackImage)}" class="result-img" onerror="this.src='${fallbackImage}'" alt="Wynik receptury">
+                        <div>
+                            <small class="recipe-label">RECEPTURA ${String(index + 1).padStart(2, '0')}</small>
+                            <div class="result-title">${escapeHTML(recipe.resultName || 'Przedmiot końcowy')}</div>
+                        </div>
+                    </div>
+                    <div class="ingredients-list">
+                        ${(Array.isArray(recipe.ingredients) ? recipe.ingredients : []).map(ingredient => `
+                            <div class="ingredient-item">
+                                <img src="${escapeHTML(ingredient.img || fallbackImage)}" class="ing-img" onerror="this.src='${fallbackImage}'" alt="Składnik">
+                                <div class="ing-details">
+                                    <span class="ing-name">${escapeHTML(ingredient.name || 'Składnik')}</span>
+                                    <span class="ing-count">${escapeHTML(ingredient.count || '1x')}</span>
+                                </div>
+                            </div>
+                        `).join('') || '<span class="muted">Brak składników</span>'}
+                    </div>
+                </article>
+            `).join('') : '<div class="empty-panel">Ta organizacja nie ma jeszcze receptur.</div>'}
+        </div>
+    `;
+}
+
+function renderAdminContent(area, org) {
+    area.innerHTML = `
+        <div class="admin-topbar">
+            <h2>EDYCJA: ${escapeHTML(org.name || 'BEZ NAZWY')}</h2>
+            <button class="btn-danger" onclick="deleteOrg(${Number(org.id)})">USUŃ ORGANIZACJĘ</button>
+        </div>
+
+        <div class="form-group"><label>NAZWA ORGANIZACJI</label><input type="text" value="${escapeHTML(org.name)}" oninput="updateField(${Number(org.id)}, 'name', this.value)"></div>
+        <div class="form-group"><label>URL LOGO ORGANIZACJI</label><input type="text" value="${escapeHTML(org.logo)}" oninput="updateField(${Number(org.id)}, 'logo', this.value)"></div>
+        <div class="form-group"><label>UNIKALNY PRZEDMIOT</label><input type="text" value="${escapeHTML(org.specialItem)}" oninput="updateField(${Number(org.id)}, 'specialItem', this.value)"></div>
+        <div class="form-group"><label>OPIS FRAKCJI</label><textarea rows="4" oninput="updateField(${Number(org.id)}, 'desc', this.value)">${escapeHTML(org.desc)}</textarea></div>
+
+        <div class="recipe-toolbar">
+            <label>RECEPTURY CRAFTINGU</label>
+            <button class="btn-primary" onclick="addRecipe(${Number(org.id)})">+ DODAJ RECEPTURĘ</button>
+        </div>
+        ${recipesFor(org).map((recipe, recipeIndex) => renderAdminRecipe(org, recipe, recipeIndex)).join('')}
+    `;
+}
+
+function renderAdminRecipe(org, recipe, recipeIndex) {
+    return `
+        <div class="admin-recipe-box">
+            <div class="recipe-box-header"><strong>RECEPTURA #${recipeIndex + 1}</strong><button class="btn-danger" onclick="removeRecipe(${Number(org.id)}, ${recipeIndex})">USUŃ</button></div>
+            <div class="admin-recipe-fields">
+                <input type="text" placeholder="Nazwa wyniku" value="${escapeHTML(recipe.resultName)}" oninput="updateRecipe(${Number(org.id)}, ${recipeIndex}, 'resultName', this.value)">
+                <input type="text" placeholder="URL zdjęcia wyniku" value="${escapeHTML(recipe.resultImg)}" oninput="updateRecipe(${Number(org.id)}, ${recipeIndex}, 'resultImg', this.value)">
+            </div>
+            <label>SKŁADNIKI</label>
+            ${(Array.isArray(recipe.ingredients) ? recipe.ingredients : []).map((ingredient, ingredientIndex) => `
+                <div class="admin-ing-row">
+                    <input type="text" placeholder="Nazwa" value="${escapeHTML(ingredient.name)}" oninput="updateIngredient(${Number(org.id)}, ${recipeIndex}, ${ingredientIndex}, 'name', this.value)">
+                    <input type="text" placeholder="Ilość" value="${escapeHTML(ingredient.count)}" oninput="updateIngredient(${Number(org.id)}, ${recipeIndex}, ${ingredientIndex}, 'count', this.value)">
+                    <input type="text" placeholder="URL zdjęcia" value="${escapeHTML(ingredient.img)}" oninput="updateIngredient(${Number(org.id)}, ${recipeIndex}, ${ingredientIndex}, 'img', this.value)">
+                    <button class="btn-danger" onclick="removeIngredient(${Number(org.id)}, ${recipeIndex}, ${ingredientIndex})">✕</button>
+                </div>
+            `).join('')}
+            <button class="btn-sec" onclick="addIngredient(${Number(org.id)}, ${recipeIndex})">+ DODAJ SKŁADNIK</button>
+        </div>
+    `;
+}
+
+function toggleAdminModal() {
+    if (isAdmin) {
+        isAdmin = false;
+        document.getElementById('adminLoginBtn').innerText = '🔐 PANEL ADMINA';
+        document.getElementById('adminLoginBtn').classList.remove('active');
+        document.getElementById('addOrgBtn').classList.add('hidden');
+        renderContent();
+        return;
+    }
+    document.getElementById('adminModal').classList.remove('hidden');
+    document.getElementById('adminPasswordInput').focus();
+}
+
+function loginAdmin() {
+    const password = document.getElementById('adminPasswordInput').value;
+    if (password !== ADMIN_PASSWORD) {
+        alert('Błędne hasło!');
+        return;
+    }
+    isAdmin = true;
+    document.getElementById('adminModal').classList.add('hidden');
+    document.getElementById('adminLoginBtn').innerText = '🔓 WYLOGUJ ADMINA';
+    document.getElementById('adminLoginBtn').classList.add('active');
+    document.getElementById('addOrgBtn').classList.remove('hidden');
+    document.getElementById('adminPasswordInput').value = '';
+    renderContent();
+}
+
+function updateField(id, field, value) {
+    const org = getOrganization(id);
+    if (!org) return;
+    org[field] = value;
+    if (field === 'name') {
+        const button = document.getElementById(`tab-btn-${id}`);
+        if (button) button.querySelector('.tab-name').textContent = value || 'BEZ NAZWY';
+    }
+    saveDataSilent();
+}
+
+function addOrganization() {
+    const newOrg = { id: Date.now(), name: 'NOWA ORGANIZACJA', logo: '', specialItem: '', desc: '', recipes: [] };
+    orgs.push(newOrg);
+    currentTab = newOrg.id;
+    saveDataFull();
+}
+
+function deleteOrg(id) {
+    if (!confirm('Usunąć organizację?')) return;
+    orgs = orgs.filter(org => String(org.id) !== String(id));
+    currentTab = orgs[0]?.id || null;
+    saveDataFull();
+}
+
+function addRecipe(orgId) {
+    const org = getOrganization(orgId);
+    if (!org) return;
+    if (!Array.isArray(org.recipes)) org.recipes = [];
+    org.recipes.push({ resultName: '', resultImg: '', ingredients: [] });
+    saveDataFull();
+}
+
+function removeRecipe(orgId, recipeIndex) {
+    const org = getOrganization(orgId);
+    if (!org || !Array.isArray(org.recipes)) return;
+    org.recipes.splice(recipeIndex, 1);
+    saveDataFull();
+}
+
+function updateRecipe(orgId, recipeIndex, field, value) {
+    const org = getOrganization(orgId);
+    if (!org || !org.recipes?.[recipeIndex]) return;
+    org.recipes[recipeIndex][field] = value;
+    saveDataSilent();
+}
+
+function addIngredient(orgId, recipeIndex) {
+    const org = getOrganization(orgId);
+    if (!org || !org.recipes?.[recipeIndex]) return;
+    if (!Array.isArray(org.recipes[recipeIndex].ingredients)) org.recipes[recipeIndex].ingredients = [];
+    org.recipes[recipeIndex].ingredients.push({ name: '', count: '', img: '' });
+    saveDataFull();
+}
+
+function removeIngredient(orgId, recipeIndex, ingredientIndex) {
+    const org = getOrganization(orgId);
+    if (!org?.recipes?.[recipeIndex]?.ingredients) return;
+    org.recipes[recipeIndex].ingredients.splice(ingredientIndex, 1);
+    saveDataFull();
+}
+
+function updateIngredient(orgId, recipeIndex, ingredientIndex, field, value) {
+    const org = getOrganization(orgId);
+    const ingredient = org?.recipes?.[recipeIndex]?.ingredients?.[ingredientIndex];
+    if (!ingredient) return;
+    ingredient[field] = value;
+    saveDataSilent();
+}
+
+dbRef.on('value', snapshot => {
+    orgs = normalizeOrganizations(snapshot.val());
+    if (!orgs.length) {
+        orgs = [{ id: Date.now(), name: 'NOWA ORGANIZACJA', logo: '', specialItem: '', desc: '', recipes: [] }];
+        dbRef.set(orgs);
+    }
+    if (!currentTab || !getOrganization(currentTab)) currentTab = orgs[0].id;
+    renderTabs();
+    renderContent();
+}, error => {
+    console.error('Firebase read error:', error);
+    const area = document.getElementById('mainDisplay');
+    if (area) area.innerHTML = '<div class="empty-panel">Nie udało się połączyć z bazą Firebase.</div>';
+});
+
+document.getElementById('adminPasswordInput')?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') loginAdmin();
+});
+
+document.getElementById('adminModal')?.addEventListener('click', event => {
+    if (event.target.id === 'adminModal') toggleAdminModal();
+});
