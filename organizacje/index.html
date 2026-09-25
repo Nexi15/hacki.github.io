@@ -37,12 +37,17 @@
             <section class="toolbar">
                 <div class="search-box"><span>⌕</span><input id="orgSearchInput" type="search" placeholder="Szukaj po nazwie lub specjalizacji..." aria-label="Szukaj organizacji"></div>
                 <div class="toolbar-actions">
-                    <select id="sortSelect" aria-label="Sortowanie"><option value="name">Sortuj: A–Z</option><option value="recipes">Najwięcej receptur</option><option value="ingredients">Najwięcej składników</option></select>
+                    <select id="sortSelect" aria-label="Sortowanie">
+                        <option value="name">Sortuj: A–Z</option>
+                        <option value="recipes">Najwięcej receptur</option>
+                        <option value="ingredients">Najwięcej składników</option>
+                    </select>
                     <button id="viewToggle" class="view-btn" title="Zmień widok">▦</button>
                 </div>
             </section>
 
             <section id="statsBar" class="stats-bar"></section>
+            <div id="tabsList" class="tabs-list"></div>
             <section id="mainDisplay" class="main-display"></section>
         </main>
     </div>
@@ -61,7 +66,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
-      const firebaseConfig = { apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmxE7TOK4sqy2zQ", authDomain: "lostmc-db.firebaseapp.com", databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app", projectId: "lostmc-db", storageBucket: "lostmc-db.firebasestorage.app", messagingSenderId: "400562944733", appId: "1:400562944733:web:f33720ac90878966557934", measurementId: "G-MLMBYZXXFF" };
+      const firebaseConfig = { apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ", authDomain: "lostmc-db.firebaseapp.com", databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app", projectId: "lostmc-db", storageBucket: "lostmc-db.firebasestorage.app", messagingSenderId: "400562944733", appId: "1:400562944733:web:f33720ac90878966557934", measurementId: "G-MLMBYZXXFF" };
       firebase.initializeApp(firebaseConfig); const database = firebase.database();
     </script>
     <script src="script.js"></script>
