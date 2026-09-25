@@ -3,112 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baza Frakcji & Craftingu | Modern UI</title>
-    
-    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <title>Organizacje | DB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <script>
-        // TWOJA ORYGINALNA KONFIGURACJA FIREBASE
-        const firebaseConfig = {
-            apiKey: "TUTAJ_WKLEJ_SWÓJ_API_KEY",
-            authDomain: "lostmc-db.firebaseapp.com",
-            databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "lostmc-db",
-            storageBucket: "lostmc-db.appspot.com",
-            messagingSenderId: "TUTAJ_WKLEJ_SENDER_ID",
-            appId: "TUTAJ_WKLEJ_APP_ID"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const database = firebase.database();
-    </script>
 </head>
 <body>
 
-    <!-- TŁO NEONOWE -->
-    <div class="bg-glow bg-glow-1"></div>
-    <div class="bg-glow bg-glow-2"></div>
-
     <div class="app-layout">
-        <!-- TOP BAR -->
-        <header class="top-bar">
-            <div class="brand">
-                <a href="../index.html" class="nav-back-btn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    <span>POWRÓT</span>
-                </a>
-                <div class="v-divider"></div>
-                <div class="logo-text">
-                    <span class="tag">NET</span>
-                    <h2>DATABASE & CRAFTING</h2>
-                </div>
+        <header class="navbar">
+            <div class="nav-left">
+                <a href="../index.html" class="back-link">⬅ MENU</a>
+                <span class="sep">/</span>
+                <span class="title">BAZA DANYCH ORGANIZACJI</span>
             </div>
-
-            <div class="top-actions">
-                <button id="adminLoginBtn" class="admin-toggle-btn" onclick="toggleAdminModal()">
-                    <span class="dot"></span>
-                    <span id="adminBtnText">PANEL ADMINA</span>
-                </button>
+            <div class="nav-right">
+                <button id="adminLoginBtn" class="btn-admin" onclick="toggleAdminModal()">🔐 PANEL ADMINA</button>
             </div>
         </header>
 
-        <!-- MAIN CONTAINER -->
-        <div class="main-body">
-            <!-- SIDEBAR WITH ORGANIZATIONS -->
+        <div class="content-body">
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <div class="title-with-count">
-                        <span>FRAKCJE & ORGANIZACJE</span>
-                    </div>
-                    <button id="addOrgBtn" class="add-btn hidden" onclick="addNewOrganization()" title="Dodaj nową organizację">+</button>
+                    <span>FRAKCJE</span>
+                    <button id="addOrgBtn" class="btn-add-org hidden" onclick="addOrganization()">+ NOWA</button>
                 </div>
-
-                <!-- Pasek wyszukiwania -->
-                <div class="search-box">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" id="searchOrgInput" placeholder="Szukaj organizacji..." oninput="filterOrganizations()">
-                </div>
-
-                <div id="tabsContainer" class="tabs-list">
-                    <!-- Dynamiczne karty organizacji wklejane skryptem -->
-                </div>
+                <div id="tabsList" class="tabs-list"></div>
             </aside>
 
-            <!-- DISPLAY AREA -->
-            <main id="mainView" class="view-container">
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    <p>Pobieranie bazy danych...</p>
-                </div>
-            </main>
+            <main id="mainDisplay" class="main-display"></main>
         </div>
     </div>
 
-    <!-- MODAL LOGOWANIA ADMINA -->
-    <div id="adminModal" class="modal-backdrop hidden">
+    <!-- MODAL LOGOWANIA -->
+    <div id="adminModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <div class="modal-header">
-                <h3>PANEL AUTORYZACJI</h3>
-                <p>Wprowadź kod dostępu, aby edytować bazę.</p>
-            </div>
-            <input type="password" id="adminPasswordInput" placeholder="Hasło dostępu..." onkeydown="if(event.key==='Enter') loginAdmin()">
+            <h3>LOGOWANIE ADMINA</h3>
+            <p>Wprowadź hasło, aby edytować zawartość.</p>
+            <input type="password" id="adminPasswordInput" placeholder="Hasło (1312)...">
             <div class="modal-actions">
-                <button class="btn-secondary" onclick="toggleAdminModal()">ANULUJ</button>
-                <button class="btn-primary" onclick="loginAdmin()">WEJDŹ</button>
+                <button class="btn-sec" onclick="toggleAdminModal()">ANULUJ</button>
+                <button class="btn-primary" onclick="loginAdmin()">ZALOGUJ</button>
             </div>
         </div>
     </div>
+
+    <!-- SKRYPTY FIREBASE (PODPIĘCIE TWOJEJ BAZY DANYCH) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmxE7TOK4sqy2zQ",
+        authDomain: "lostmc-db.firebaseapp.com",
+        databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "lostmc-db",
+        storageBucket: "lostmc-db.firebasestorage.app",
+        messagingSenderId: "400562944733",
+        appId: "1:400562944733:web:f33720ac90878966557934",
+        measurementId: "G-MLMBYZXXFF"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+    </script>
 
     <script src="script.js"></script>
 </body>
