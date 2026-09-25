@@ -1,23 +1,14 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ",
-  authDomain: "lostmc-db.firebaseapp.com",
-  databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "lostmc-db",
-  storageBucket: "lostmc-db.firebasestorage.app",
-  messagingSenderId: "400562944733",
-  appId: "1:400562944733:web:f33720ac90878966557934",
-  measurementId: "G-MLMBYZXXFF"
+var firebaseConfig = {
+    apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ",
+    authDomain: "lostmc-db.firebaseapp.com",
+    databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "lostmc-db",
+    storageBucket: "lostmc-db.firebasestorage.app",
+    messagingSenderId: "400562944733",
+    appId: "1:400562944733:web:f33720ac90878966557934",
+    measurementId: "G-MLMBYZXXFF"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-// Połączenie z bazą
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -32,12 +23,16 @@ database.ref('organizacje').on('value', function(snapshot) {
     dataStore = snapshot.val() || {};
     var keys = Object.keys(dataStore);
 
-    if (keys.length > 0 && !selectedKey) {
+    if (keys.length > 0 && (!selectedKey || !dataStore[selectedKey])) {
         selectedKey = keys[0];
     }
 
     renderSidebar();
     renderView();
+}, function(error) {
+    console.error("Błąd połączenia z bazą:", error);
+    document.getElementById('mainContent').innerHTML = 
+        '<div class="loading-state"><p style="color:var(--accent-red)">Błąd połączenia z bazą danych!</p></div>';
 });
 
 function renderSidebar() {
@@ -47,13 +42,18 @@ function renderSidebar() {
 
     var keys = Object.keys(dataStore);
     if (keys.length === 0) {
-        list.innerHTML = '<div style="padding:10px; color:#aaa;">Brak danych w bazie</div>';
+        list.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:0.85rem;">Brak frakcji w bazie.</div>';
         return;
     }
 
     keys.forEach(function(key) {
-        var org = dataStore[key];
+        var org = dataStore[key] || {};
         var active = (key === selectedKey);
+        
+        var count = 0;
+        if (org.recipes) {
+            count = Array.isArray(org.recipes) ? org.recipes.length : Object.keys(org.recipes).length;
+        }
 
         var card = document.createElement('div');
         card.className = 'org-card' + (active ? ' active' : '');
@@ -63,15 +63,16 @@ function renderSidebar() {
             renderView();
         };
 
-        var img = org.logo || 'https://via.placeholder.com/40';
+        var img = org.logo || 'https://via.placeholder.com/42';
         var name = org.name || 'Bez nazwy';
 
         card.innerHTML = 
-            '<img src="' + img + '">' +
+            '<img src="' + img + '" alt="logo">' +
             '<div class="org-card-info">' +
                 '<h3>' + name + '</h3>' +
+                '<p>' + count + ' Receptur</p>' +
             '</div>';
-
+            
         list.appendChild(card);
     });
 }
@@ -81,7 +82,7 @@ function renderView() {
     if (!main) return;
 
     if (!selectedKey || !dataStore[selectedKey]) {
-        main.innerHTML = '<div>Wybierz frakcję z listy obok.</div>';
+        main.innerHTML = '<div class="loading-state"><p>Brak wybranej frakcji.</p></div>';
         return;
     }
 
@@ -92,38 +93,89 @@ function renderView() {
         return;
     }
 
+    // Bezpieczne generowanie HTML dla craftingu
+    var recipesList = '';
+    if (org.recipes) {
+        var recipesArray = Array.isArray(org.recipes) ? org.recipes : Object.values(org.recipes);
+        
+        recipesArray.forEach(function(r) {
+            if (!r) return;
+            
+            var ingsList = '';
+            if (r.ingredients) {
+                var ingArray = Array.isArray(r.ingredients) ? r.ingredients : Object.values(r.ingredients);
+                ingArray.forEach(function(i) {
+                    if (!i) return;
+                    ingsList += 
+                        '<div class="ing-item">' +
+                            '<span>' + (i.name || 'Składnik') + '</span>' +
+                            '<span class="ing-qty">x' + (i.amount || 1) + '</span>' +
+                        '</div>';
+                });
+            }
+
+            recipesList += 
+                '<div class="recipe-card">' +
+                    '<div class="recipe-header">' +
+                        '<img src="' + (r.resultIcon || 'https://via.placeholder.com/44') + '" alt="item">' +
+                        '<h4>' + (r.resultName || 'Przedmiot') + '</h4>' +
+                    '</div>' +
+                    '<div class="section-title">SKŁADNIKI:</div>' +
+                    (ingsList || '<p style="font-size:0.8rem; color:var(--text-muted)">Brak składników</p>') +
+                '</div>';
+        });
+    }
+
+    if (!recipesList) {
+        recipesList = '<p style="color:var(--text-muted); font-size:0.85rem;">Ta frakcja nie posiada jeszcze dodanych receptur.</p>';
+    }
+
     var html = 
         '<div class="hero-banner">' +
             '<div class="hero-left">' +
-                '<img src="' + (org.logo || 'https://via.placeholder.com/70') + '" class="hero-logo">' +
+                '<img src="' + (org.logo || 'https://via.placeholder.com/72') + '" class="hero-logo">' +
                 '<div class="hero-title">' +
                     '<h2>' + (org.name || 'Bez nazwy') + '</h2>' +
+                    '<span class="badge">FRAKCJA AKTYWNA</span>' +
                 '</div>' +
             '</div>' +
-            (isAdmin ? '<button class="btn" onclick="toggleEdit()">Edytuj</button>' : '') +
+            (isAdmin ? '<button class="btn" onclick="toggleEdit()">✏️ EDYTUJ</button>' : '') +
         '</div>';
 
     if (org.description) {
-        html += '<div class="description-box">' + org.description + '</div>';
+        html += '<div class="section-title">INFORMACJE O FRAKCJI</div>' +
+                '<div class="description-box">' + org.description + '</div>';
     }
+
+    html += '<div class="section-title">RECEPTURY CRAFTINGU</div>' +
+            '<div class="crafting-grid">' + recipesList + '</div>';
 
     main.innerHTML = html;
 }
 
 function renderEditMode(container, org) {
     container.innerHTML = 
-        '<h3>Edycja: ' + (org.name || '') + '</h3>' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">' +
+            '<h3>Edytujesz: ' + (org.name || '') + '</h3>' +
+            '<div style="display:flex; gap:8px;">' +
+                '<button class="btn" onclick="toggleEdit()">ANULUJ</button>' +
+                '<button class="btn btn-primary" onclick="saveOrg()">ZAPISZ</button>' +
+            '</div>' +
+        '</div>' +
         '<div class="edit-form">' +
-            '<label>Nazwa:</label>' +
-            '<input type="text" id="editName" value="' + (org.name || '') + '">' +
-            '<label>Logo URL:</label>' +
-            '<input type="text" id="editLogo" value="' + (org.logo || '') + '">' +
-            '<label>Opis:</label>' +
-            '<textarea id="editDesc">' + (org.description || '') + '</textarea>' +
-            '<br><br>' +
-            '<button class="btn btn-primary" onclick="saveOrg()">Zapisz</button> ' +
-            '<button class="btn" onclick="toggleEdit()">Anuluj</button> ' +
-            '<button class="btn" style="color:red;" onclick="deleteOrg()">Usuń</button>' +
+            '<div>' +
+                '<label>Nazwa organizacji:</label>' +
+                '<input type="text" id="editName" value="' + (org.name || '') + '" style="width:100%;">' +
+            '</div>' +
+            '<div>' +
+                '<label>URL Logo:</label>' +
+                '<input type="text" id="editLogo" value="' + (org.logo || '') + '" style="width:100%;">' +
+            '</div>' +
+            '<div>' +
+                '<label>Opis:</label>' +
+                '<textarea id="editDesc" rows="5" style="width:100%;">' + (org.description || '') + '</textarea>' +
+            '</div>' +
+            '<button class="btn" style="color:var(--accent-red); border-color:var(--accent-red); margin-top:10px;" onclick="deleteOrg()">USUŃ ORGANIZACJĘ</button>' +
         '</div>';
 }
 
@@ -143,7 +195,7 @@ function saveOrg() {
 }
 
 function deleteOrg() {
-    if (confirm("Usunąć organizację?")) {
+    if (confirm("Czy na pewno chcesz usunąć tę organizację?")) {
         database.ref('organizacje/' + selectedKey).remove();
         delete dataStore[selectedKey];
         selectedKey = Object.keys(dataStore)[0] || null;
@@ -158,7 +210,8 @@ function createNewOrg() {
     var newObj = {
         name: "Nowa Frakcja",
         logo: "",
-        description: "Opis..."
+        description: "Opis frakcji...",
+        recipes: []
     };
     database.ref('organizacje/' + newKey).set(newObj);
     selectedKey = newKey;
@@ -187,6 +240,7 @@ function loginAdmin() {
         renderSidebar();
         renderView();
     } else {
-        alert("Złe hasło!");
+        alert("Niepoprawne hasło!");
     }
+    document.getElementById('passInput').value = '';
 }
