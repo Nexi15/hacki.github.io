@@ -18,16 +18,16 @@
 
     <script>
         // USTAWIENIA FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ",
-  authDomain: "lostmc-db.firebaseapp.com",
-  databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "lostmc-db",
-  storageBucket: "lostmc-db.firebasestorage.app",
-  messagingSenderId: "400562944733",
-  appId: "1:400562944733:web:f33720ac90878966557934",
-  measurementId: "G-MLMBYZXXFF"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyARd3zgC_7SnLZG4c1rmx1E7TOK4sqy2zQ",
+            authDomain: "lostmc-db.firebaseapp.com",
+            databaseURL: "https://lostmc-db-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "lostmc-db",
+            storageBucket: "lostmc-db.firebasestorage.app",
+            messagingSenderId: "400562944733",
+            appId: "1:400562944733:web:f33720ac90878966557934",
+            measurementId: "G-MLMBYZXXFF"
+        };
 
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
@@ -37,7 +37,7 @@ const firebaseConfig = {
 </head>
 <body>
 
-    <!-- TŁO Z EFEKTEM BLUR/GLOW -->
+    <!-- TŁO NEONOWE -->
     <div class="bg-glow bg-glow-1"></div>
     <div class="bg-glow bg-glow-2"></div>
 
@@ -51,8 +51,8 @@ const firebaseConfig = {
                 </a>
                 <div class="v-divider"></div>
                 <div class="logo-text">
-                    <span class="tag">SYSTEM</span>
-                    <h2>ORGANIZACJE & CRAFTING</h2>
+                    <span class="tag">NET</span>
+                    <h2>DATABASE & CRAFTING</h2>
                 </div>
             </div>
 
@@ -69,8 +69,14 @@ const firebaseConfig = {
             <!-- SIDEBAR -->
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <span>ORGANIZACJE</span>
+                    <span>FRAKCJE & ORGANIZACJE</span>
                     <button id="addOrgBtn" class="add-btn hidden" onclick="addNewOrganization()" title="Dodaj nową organizację">+</button>
+                </div>
+
+                <!-- Pasek wyszukiwania -->
+                <div class="search-box">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="searchOrgInput" placeholder="Szukaj organizacji..." oninput="filterOrganizations()">
                 </div>
 
                 <div id="tabsContainer" class="tabs-list">
